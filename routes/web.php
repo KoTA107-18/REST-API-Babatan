@@ -14,5 +14,5 @@
 */
 
 $router->get('/', function () use ($router) {
-    return "REST API Babatan with " . $router->app->version();
+    return redirect('/api/documentation');
 });

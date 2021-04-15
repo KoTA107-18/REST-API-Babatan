@@ -22,8 +22,10 @@ date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
 $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
-
-// $app->withFacades();
+// Configuration Swagger Lume
+$app->withFacades();
+$app->configure('swagger-lume'); 
+$app->register(\SwaggerLume\ServiceProvider::class);
 
 // $app->withEloquent();
 
