@@ -7,6 +7,15 @@
 
 Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
 
+## Installation
+- `git clone "https://github.com/KoTA107-18/REST-API-Babatan.git"`
+- `cd REST-API-Babatan`
+- `composer update`
+- `php artisan swagger-lume:publish`
+- `php artisan swagger-lume:generate`
+- `php -S localhost:8080 public/index.php`
+- open `http://localhost:8080/api/documentation` on your browser.
+
 ## Official Documentation
 
 Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
