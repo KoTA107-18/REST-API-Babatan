@@ -22,9 +22,25 @@ use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
  *     )
  * )
  */
+
 /**
 * @OA\Get(
  *   path="/annotation",
+ *   summary="Version",
+ *   @OA\Response(
+ *     response=200,
+ *     description="Working"
+ *   ),
+ *   @OA\Response(
+ *     response="default",
+ *     description="an ""unexpected"" error"
+ *   )
+ * )
+ */
+
+ /**
+* @OA\Get(
+ *   path="/annotationaaa",
  *   summary="Version",
  *   @OA\Response(
  *     response=200,

@@ -20,6 +20,19 @@
                     }
                 }
             }
+        },
+        "/annotationaaa": {
+            "get": {
+                "summary": "Version",
+                "responses": {
+                    "200": {
+                        "description": "Working"
+                    },
+                    "default": {
+                        "description": "an \"unexpected\" error"
+                    }
+                }
+            }
         }
     }
 }
