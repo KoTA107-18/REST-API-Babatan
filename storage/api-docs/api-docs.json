@@ -2,14 +2,19 @@
     "openapi": "3.0.0",
     "info": {
         "title": "REST API Documentation Babatan",
+        "description": "Halaman ini merupakan dokumentasi Server REST API dari Aplikasi Pengelolaan Antrean Puskesmas Babatan.",
+        "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "email": "andi.fauzy.tif18@polban.ac.id"
         },
         "version": "1.0.0"
     },
     "paths": {
-        "/annotation": {
+        "/pasien": {
             "get": {
+                "tags": [
+                    "Pasien"
+                ],
                 "summary": "Version",
                 "responses": {
                     "200": {
@@ -21,8 +26,41 @@
                 }
             }
         },
-        "/annotationaaa": {
+        "/administrator": {
             "get": {
+                "tags": [
+                    "Administrator"
+                ],
+                "summary": "Version",
+                "responses": {
+                    "200": {
+                        "description": "Working"
+                    },
+                    "default": {
+                        "description": "an \"unexpected\" error"
+                    }
+                }
+            }
+        },
+        "/perawat": {
+            "get": {
+                "tags": [
+                    "Perawat"
+                ],
+                "summary": "Version",
+                "responses": {
+                    "200": {
+                        "description": "Working"
+                    },
+                    "default": {
+                        "description": "an \"unexpected\" error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Perawat"
+                ],
                 "summary": "Version",
                 "responses": {
                     "200": {
@@ -34,5 +72,23 @@
                 }
             }
         }
+    },
+    "tags": [
+        {
+            "name": "Pasien",
+            "description": "Operasi pada role Pasien"
+        },
+        {
+            "name": "Administrator",
+            "description": "Operasi pada role Administrator"
+        },
+        {
+            "name": "Perawat",
+            "description": "Operasi pada role Perawat"
+        }
+    ],
+    "externalDocs": {
+        "description": "Find out more about Swagger",
+        "url": "http://swagger.io"
     }
 }

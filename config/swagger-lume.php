@@ -7,7 +7,7 @@ return [
         | Edit to set the api's title
         |--------------------------------------------------------------------------
          */
-        'title' => 'REST API Babatan | KoTA107',
+        'title' => 'Swagger Lume API',
     ],
 
     'routes' => [
