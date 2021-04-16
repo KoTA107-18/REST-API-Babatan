@@ -16,3 +16,7 @@
 $router->get('/', function () use ($router) {
     return redirect('/api/documentation');
 });
+
+$router->get('/group', function () use ($router) {
+    return "koTA107";
+});
