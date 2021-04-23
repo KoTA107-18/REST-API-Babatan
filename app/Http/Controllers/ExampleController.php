@@ -18,11 +18,18 @@ class ExampleController extends Controller
     }
 
     public function pasienRegister(Request $request){
-        //return response()->json($request);
-        return response()->json([
-            'response' => '201', 
-            'message' => 'Pasien berhasil terdaftar!'
-            ]);
+        $username = $request["username"];
+        $no_handphone = $request["no_handphone"];
+        $password = $request["password"];
+        $kepala_keluarga = $request["kepala_keluarga"];
+        $tgl_lahir = $request["tgl_lahir"];
+        $alamat = $request["alamat"];
+        $nama_lengkap = $request["nama_lengkap"];
+        
+        DB::insert("INSERT INTO pasien VALUES(
+            '$username', '$no_handphone', '$password', 
+            '$kepala_keluarga', '$tgl_lahir', '$alamat', 
+            '$nama_lengkap')");
     }
 
     public function getAdmin(){
