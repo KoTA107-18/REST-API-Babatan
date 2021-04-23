@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class ExampleController extends Controller
 {
@@ -22,5 +23,10 @@ class ExampleController extends Controller
             'response' => '201', 
             'message' => 'Pasien berhasil terdaftar!'
             ]);
+    }
+
+    public function getAdmin(){
+        $results = DB::select("SELECT * FROM administrator");
+        return response()->json($results);
     }
 }

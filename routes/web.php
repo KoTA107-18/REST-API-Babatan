@@ -18,3 +18,5 @@ $router->get('/', function () use ($router) {
 });
 
 $router->post('/pasien','ExampleController@pasienRegister');
+
+$router->get('/admin','ExampleController@getAdmin');
