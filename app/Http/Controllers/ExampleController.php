@@ -32,8 +32,14 @@ class ExampleController extends Controller
             '$nama_lengkap')");
     }
 
-    public function getAdmin(){
-        $results = DB::select("SELECT * FROM administrator");
-        return response()->json($results);
+    public function pasienLogin(Request $request){
+        $username = $request["username"];
+        $password = $request["password"];
+        $result = DB::select("SELECT * FROM pasien WHERE username = '$username' AND password = '$password'");
+        if($result != null){
+            return response()->json(true, 200);
+        } else {
+            return response()->json(false, 404);
+        }
     }
 }
