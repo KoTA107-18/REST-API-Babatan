@@ -21,4 +21,6 @@ $router->post('/pasien','ExampleController@pasienRegister');
 
 $router->get('/pasien/login','ExampleController@pasienLogin');
 
+$router->get('/administrator/login','ExampleController@administratorLogin');
+
 $router->get('/admin','ExampleController@getAdmin');
