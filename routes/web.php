@@ -20,3 +20,9 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->post('/register', 'PasienController@register');
 });
+
+$router->get('/pasien/login','ExampleController@pasienLogin');
+
+$router->get('/administrator/login','ExampleController@administratorLogin');
+
+$router->get('/admin','ExampleController@getAdmin');
