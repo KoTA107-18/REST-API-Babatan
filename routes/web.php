@@ -19,6 +19,10 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->post('/register', 'PasienController@register');
+
+    $router->post('/login/username', 'PasienController@loginDenganUsername');
+
+    $router->post('/login/nohp', 'PasienController@loginDenganNoHp');
 });
 
 $router->get('/pasien/login','ExampleController@pasienLogin');
