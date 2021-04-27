@@ -14,9 +14,9 @@
 */
 
 $router->get('/', function () use ($router) {
-    return redirect('/api/documentation');
+    return $router->app->version();
 });
 
-$router->post('/pasien','ExampleController@pasienRegister');
-
-$router->get('/admin','ExampleController@getAdmin');
+$router->group(['prefix' => 'api'], function () use ($router) {
+    $router->post('/register', 'PasienController@register');
+});
