@@ -14,10 +14,12 @@
 */
 
 $router->get('/', function () use ($router) {
-    return redirect('/api/documentation');
+    return $router->app->version();
 });
 
-$router->post('/pasien','ExampleController@pasienRegister');
+$router->group(['prefix' => 'api'], function () use ($router) {
+    $router->post('/register', 'PasienController@register');
+});
 
 $router->get('/pasien/login','ExampleController@pasienLogin');
 
