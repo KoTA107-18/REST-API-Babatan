@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Pasien;
 
@@ -43,9 +44,65 @@ class PasienController extends Controller
         }
     }
 
-    public function login(Request $request)
+    public function loginDenganUsername(Request $request)
     {
+        $username   = $request->input('username');
+        $password   = $request->input('password');
 
+        $pasien     = Pasien::where('username', $username)->first();
+
+        if (Hash::check($password, $pasien->password)) {
+            $apiToken = base64_encode(Str::random(40));
+
+            $pasien->update([
+                'api_token' => $apiToken
+            ]);
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Login Success!',
+                'data'      => [
+                    'pasien'    => $pasien,
+                    'api_token' => $apiToken
+                ]
+            ], 201);
+        } else {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Login Fail!',
+                'data'      => ''
+            ], 400);
+        }
+    }
+
+    public function loginDenganNoHp(Request $request)
+    {
+        $no_handphone   = $request->input('no_handphone');
+
+        $pasien         = Pasien::where('no_handphone', $no_handphone)->first();
+
+        if ($pasien != null) {
+            $apiToken = base64_encode(Str::random(40));
+
+            $pasien->update([
+                'api_token' => $apiToken
+            ]);
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Login Success!',
+                'data'      => [
+                    'pasien'    => $pasien,
+                    'api_token' => $apiToken
+                ]
+            ], 201);
+        } else {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Login Fail!',
+                'data'      => ''
+            ], 400);
+        }
     }
 
     // public function pasienRegister(Request $request){
