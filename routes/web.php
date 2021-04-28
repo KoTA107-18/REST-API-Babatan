@@ -33,4 +33,8 @@ $router->get('/admin','ExampleController@getAdmin');
 
 $router->get('/poliklinik','ExampleController@getPoliklinik');
 
+// Daftar Antre Hari Ini
 $router->post('/ticket/daftar','ExampleController@registerAntreanHariIni');
+
+// Cek apakah sudah ambil tiket atau belum.
+$router->get('/ticket/check','ExampleController@checkStatusTicket');

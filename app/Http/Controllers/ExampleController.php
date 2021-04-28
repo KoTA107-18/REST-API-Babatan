@@ -51,4 +51,14 @@ class ExampleController extends Controller
             '0', $tipe_booking, '$tgl_pelayanan', 
             $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
     }
+
+    public function checkStatusTicket(Request $request){
+        $username = $request["username"];
+        $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE username = '$username' AND status_antrean = 1");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json($result, 404);
+        }
+    }
 }
