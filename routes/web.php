@@ -30,3 +30,5 @@ $router->get('/pasien/login','ExampleController@pasienLogin');
 $router->get('/administrator/login','ExampleController@administratorLogin');
 
 $router->get('/admin','ExampleController@getAdmin');
+
+$router->get('/poliklinik','ExampleController@getPoliklinik');

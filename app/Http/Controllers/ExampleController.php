@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\DB;
 
 class ExampleController extends Controller
 {
@@ -24,4 +25,13 @@ class ExampleController extends Controller
     //         return response()->json(false, 404);
     //     }
     // }
+
+    public function getPoliklinik(){
+        $result = DB::select("SELECT * FROM poliklinik");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
 }
