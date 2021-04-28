@@ -32,3 +32,5 @@ $router->get('/administrator/login','ExampleController@administratorLogin');
 $router->get('/admin','ExampleController@getAdmin');
 
 $router->get('/poliklinik','ExampleController@getPoliklinik');
+
+$router->post('/ticket/daftar','ExampleController@registerAntreanHariIni');
