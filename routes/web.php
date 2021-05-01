@@ -38,3 +38,6 @@ $router->post('/ticket/daftar','ExampleController@registerAntreanHariIni');
 
 // Cek apakah sudah ambil tiket atau belum.
 $router->get('/ticket/check','ExampleController@checkStatusTicket');
+
+// Ubah status
+$router->put('/ticket/ubah','ExampleController@ubahAntrean');

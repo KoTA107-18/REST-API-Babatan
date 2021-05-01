@@ -61,4 +61,18 @@ class ExampleController extends Controller
             return response()->json($result, 404);
         }
     }
+
+    public function ubahAntrean(Request $request){
+        $username = $request["username"];
+        $id_jadwal = $request["id_jadwal"];
+        $id_poli = $request["id_poli"];
+        $kode_antrean = $request["kode_antrean"];
+        $tipe_booking = $request["tipe_booking"];
+        $tgl_pelayanan = $request["tgl_pelayanan"];
+        $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
+        $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
+        $status_antrean = $request["status_antrean"];
+
+        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean' WHERE kode_antrean = '$kode_antrean'");
+    }
 }
