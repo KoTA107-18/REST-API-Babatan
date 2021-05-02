@@ -35,6 +35,18 @@ class ExampleController extends Controller
         }
     }
 
+    public function ubahPoliklinik(){
+        $id_poli = $request["id_poli"];
+        $nama_poli = $request["nama_poli"];
+        $desc_poli = $request["desc_poli"];
+        $status_poli = $request["status_poli"];
+        $rerata = $request["rerata_waktu_pelayanan"];
+        
+        DB::update("UPDATE poliklinik SET nama_poli = '$nama_poli', 
+        desc_poli = '$desc_poli', status_poli = '$status_poli',
+        rerata_waktu_pelayanan = '$rerata' WHERE id_poli = '$id_poli'");
+    }
+
     public function registerAntreanHariIni(Request $request){
         $username = $request["username"];
         $id_jadwal = $request["id_jadwal"];
