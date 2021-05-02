@@ -35,7 +35,7 @@ class ExampleController extends Controller
         }
     }
 
-    public function ubahPoliklinik(){
+    public function ubahPoliklinik(Request $request){
         $id_poli = $request["id_poli"];
         $nama_poli = $request["nama_poli"];
         $desc_poli = $request["desc_poli"];
