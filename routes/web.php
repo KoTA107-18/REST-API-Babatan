@@ -44,3 +44,6 @@ $router->put('/ticket/ubah','ExampleController@ubahAntrean');
 
 // Ubah Poliklinik
 $router->put('/poliklinik/ubah','ExampleController@ubahPoliklinik');
+
+// Ubah status semua poli.
+$router->put('/poliklinik/status','ExampleController@ubahStatusAllPoli');

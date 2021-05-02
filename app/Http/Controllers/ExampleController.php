@@ -87,4 +87,20 @@ class ExampleController extends Controller
 
         DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean' WHERE kode_antrean = '$kode_antrean'");
     }
+
+    public function ubahStatusAllPoli(Request $request){
+        $i=0;
+        while($request[$i] != null){
+            $id = $request[$i]["id_poli"];
+            $status = $request[$i]["status_poli"];
+            DB::update("UPDATE poliklinik SET status_poli = '$status' WHERE id_poli = '$id'");
+            $i++;
+        }
+
+        if($i != 0){
+            return response()->json(true, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
 }
