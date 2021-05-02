@@ -18,7 +18,7 @@ class ExampleController extends Controller
     public function administratorLogin(Request $request){
         $username = $request["username"];
         $password = $request["password"];
-        $result = DB::select("SELECT * FROM administrator WHERE username = '$username' AND password = '$password'");
+        $result = DB::select("SELECT * FROM administrator WHERE username_admin = '$username' AND password_admin = '$password'");
         if($result != null){
             return response()->json(true, 200);
         } else {
