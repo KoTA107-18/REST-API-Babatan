@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Pasien;
+use Symfony\Component\HttpFoundation\Response;
 
 class PasienController extends Controller
 {
@@ -34,13 +35,13 @@ class PasienController extends Controller
                 'success'   => true,
                 'message'   => 'Register Success!',
                 'data'      => $register
-            ], 201);
+            ], Response::HTTP_CREATED);
         } else {
             return response()->json([
                 'success'   => false,
                 'message'   => 'Register Fail!',
                 'data'      => ''
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -65,13 +66,13 @@ class PasienController extends Controller
                     'pasien'    => $pasien,
                     'api_token' => $apiToken
                 ]
-            ], 201);
+            ], Response::HTTP_CREATED);
         } else {
             return response()->json([
                 'success'   => false,
                 'message'   => 'Login Fail!',
                 'data'      => ''
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -95,13 +96,13 @@ class PasienController extends Controller
                     'pasien'    => $pasien,
                     'api_token' => $apiToken
                 ]
-            ], 201);
+            ], Response::HTTP_CREATED);
         } else {
             return response()->json([
                 'success'   => false,
                 'message'   => 'Login Fail!',
                 'data'      => ''
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 
