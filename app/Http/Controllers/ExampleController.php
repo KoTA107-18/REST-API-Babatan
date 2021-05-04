@@ -12,7 +12,12 @@ class ExampleController extends Controller
      */
     public function __construct()
     {
-        //
+        // try{
+        //     // try code
+        // }
+        // catch(\Exception $e){
+        //     // catch code
+        // }
     }
 
     public function administratorLogin(Request $request){
@@ -41,8 +46,8 @@ class ExampleController extends Controller
         $desc_poli = $request["desc_poli"];
         $status_poli = $request["status_poli"];
         $rerata = $request["rerata_waktu_pelayanan"];
-        
-        DB::update("UPDATE poliklinik SET nama_poli = '$nama_poli', 
+
+        DB::update("UPDATE poliklinik SET nama_poli = '$nama_poli',
         desc_poli = '$desc_poli', status_poli = '$status_poli',
         rerata_waktu_pelayanan = '$rerata' WHERE id_poli = '$id_poli'");
     }
@@ -59,8 +64,8 @@ class ExampleController extends Controller
         $status_antrean = $request["status_antrean"];
 
         DB::insert("INSERT INTO jadwal_pasien VALUES(
-            '$username', $id_jadwal, '$id_poli', 
-            '0', $tipe_booking, '$tgl_pelayanan', 
+            '$username', $id_jadwal, '$id_poli',
+            '0', $tipe_booking, '$tgl_pelayanan',
             $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
     }
 
@@ -96,6 +101,8 @@ class ExampleController extends Controller
             DB::update("UPDATE poliklinik SET status_poli = '$status' WHERE id_poli = '$id'");
             $i++;
         }
+
+
 
         if($i != 0){
             return response()->json(true, 200);
