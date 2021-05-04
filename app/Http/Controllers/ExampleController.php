@@ -53,19 +53,20 @@ class ExampleController extends Controller
     }
 
     public function registerAntreanHariIni(Request $request){
-        $username = $request["username"];
-        $id_jadwal = $request["id_jadwal"];
         $id_poli = $request["id_poli"];
-        $kode_antrean = $request["kode_antrean"];
+        $id_hari = $request["id_hari"];
+        $username = $request["username"];
+        $nomor_antrean = $request["nomor_antrean"];
         $tipe_booking = $request["tipe_booking"];
         $tgl_pelayanan = $request["tgl_pelayanan"];
+        $jam_daftar_antrean = $request["jam_daftar_antrean"];
         $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
         $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
         $status_antrean = $request["status_antrean"];
 
         DB::insert("INSERT INTO jadwal_pasien VALUES(
-            '$username', $id_jadwal, '$id_poli',
-            '0', $tipe_booking, '$tgl_pelayanan',
+            '$id_poli', $id_hari, '$username',
+            '0', $tipe_booking, '$tgl_pelayanan', '$jam_daftar_antrean'
             $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
     }
 
@@ -80,17 +81,18 @@ class ExampleController extends Controller
     }
 
     public function ubahAntrean(Request $request){
-        $username = $request["username"];
-        $id_jadwal = $request["id_jadwal"];
         $id_poli = $request["id_poli"];
-        $kode_antrean = $request["kode_antrean"];
+        $id_hari = $request["id_hari"];
+        $username = $request["username"];
+        $nomor_antrean = $request["nomor_antrean"];
         $tipe_booking = $request["tipe_booking"];
         $tgl_pelayanan = $request["tgl_pelayanan"];
+        $jam_daftar_antrean = $request["jam_daftar_antrean"];
         $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
         $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
         $status_antrean = $request["status_antrean"];
 
-        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean' WHERE kode_antrean = '$kode_antrean'");
+        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean' WHERE username = '$username' AND status_antrean ='1'");
     }
 
     public function ubahStatusAllPoli(Request $request){
