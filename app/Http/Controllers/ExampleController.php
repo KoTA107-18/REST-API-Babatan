@@ -98,7 +98,7 @@ class ExampleController extends Controller
         }
 
         if($i != 0){
-            return response()->json(true, 200);
+            return response()->json($i, 200);
         } else {
             return response()->json(false, 404);
         }
