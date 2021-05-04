@@ -18,11 +18,12 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'api'], function () use ($router) {
-    $router->post('/register', 'PasienController@register');
-
-    $router->post('/login/username', 'PasienController@loginDenganUsername');
-
-    $router->post('/login/nohp', 'PasienController@loginDenganNoHp');
+    $router->group(['prefix' => 'pasien'], function () use ($router) {
+        $router->post('/register', 'AuthPasienController@register');
+        $router->post('/login/username', 'AuthPasienController@loginDenganUsername');
+        $router->post('/login/nohp', 'AuthPasienController@loginDenganNoHp');
+        $router->post('/logout', 'PasienController@logout');
+    });
 });
 
 $router->get('/pasien/login','ExampleController@pasienLogin');
