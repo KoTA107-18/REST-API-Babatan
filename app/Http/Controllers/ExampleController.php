@@ -53,6 +53,7 @@ class ExampleController extends Controller
     }
 
     public function registerAntreanHariIni(Request $request){
+        $id_jadwal_pasien = $request["id_jadwal_pasien"];
         $id_poli = $request["id_poli"];
         $id_hari = $request["id_hari"];
         $username = $request["username"];
@@ -65,7 +66,7 @@ class ExampleController extends Controller
         $status_antrean = $request["status_antrean"];
 
         DB::insert("INSERT INTO jadwal_pasien VALUES(
-            '$id_poli', '$id_hari', '$username',
+            '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
             '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
             '$jam_mulai_dilayani','$jam_selesai_dilayani','$status_antrean')");
     }
