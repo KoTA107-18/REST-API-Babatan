@@ -65,10 +65,19 @@ class ExampleController extends Controller
         $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
         $status_antrean = $request["status_antrean"];
 
-        DB::insert("INSERT INTO jadwal_pasien VALUES(
-            '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
-            '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
-            $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
+        if($tipe_booking == 1){
+            DB::insert("INSERT INTO jadwal_pasien VALUES(
+                '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
+                '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
+                '$jam_mulai_dilayani',$jam_selesai_dilayani,'$status_antrean')");
+        } else {
+            DB::insert("INSERT INTO jadwal_pasien VALUES(
+                '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
+                '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
+                $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
+        }
+
+        
     }
 
     public function checkStatusTicket(Request $request){
