@@ -40,6 +40,15 @@ class ExampleController extends Controller
         }
     }
 
+    public function insertPoliklinik(Request $request){
+        $id_poli = $request["id_poli"];
+        $nama_poli = $request["nama_poli"];
+        $desc_poli = $request["desc_poli"];
+        $status_poli = $request["status_poli"];
+        $rerata = $request["rerata_waktu_pelayanan"];
+        DB::insert("INSERT poliklinik VALUES(0,'$nama_poli', '$desc_poli', $status_poli, $rerata)");
+    }
+
     public function ubahPoliklinik(Request $request){
         $id_poli = $request["id_poli"];
         $nama_poli = $request["nama_poli"];
