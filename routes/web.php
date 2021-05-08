@@ -51,3 +51,6 @@ $router->put('/poliklinik/ubah','ExampleController@ubahPoliklinik');
 
 // Ubah status semua poli.
 $router->put('/poliklinik/status','ExampleController@ubahStatusAllPoli');
+
+// Get Daftar antrian berdasarkan Poli
+$router->get('/antrean/poliklinik','ExampleController@getAntreanWithPoliId');

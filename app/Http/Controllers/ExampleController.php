@@ -40,6 +40,16 @@ class ExampleController extends Controller
         }
     }
 
+    public function getAntreanWithPoliId(Request $request){
+        $id_poli = $request["id_poli"];
+        $result = DB::select("SELECT * FROM jadwal_pasien WHERE id_poli='$id_poli'");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
     public function insertPoliklinik(Request $request){
         $id_poli = $request["id_poli"];
         $nama_poli = $request["nama_poli"];
