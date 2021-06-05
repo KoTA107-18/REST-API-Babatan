@@ -141,4 +141,56 @@ class ExampleController extends Controller
             return response()->json(false, 404);
         }
     }
+
+
+    // Perawat.
+    public function getAllPerawat(){
+        $result = DB::select("SELECT pe.id_perawat, pe.username, pe.password, pe.nama, pe.id_poli, po.nama_poli 
+        FROM perawat pe 
+        LEFT JOIN poliklinik po ON pe.id_poli=po.id_poli");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
+    public function insertPerawat(Request $request){
+        $username = $request["username"];
+        $password = $request["password"];
+        $nama = $request["nama"];
+        $id_poli = $request["id_poli"];
+        DB::insert("INSERT perawat VALUES(0,'$username', '$password', '$nama', '$id_poli')");
+    }
+
+    public function editPerawat(Request $request, $id){
+        $username = $request["username"];
+        $password = $request["password"];
+        $nama = $request["nama"];
+        $id_poli = $request["id_poli"];
+        DB::update("UPDATE perawat 
+            SET 
+                username = '$username',
+                password = '$password',
+                nama = '$nama',
+                id_poli = '$id_poli'
+             WHERE id_perawat = '$id'");
+    }
+
+    public function deletePerawat($id){
+        DB::delete("DELETE FROM perawat WHERE id_perawat = '$id'");
+    }
+
+    public function getPerawat($id){
+        $result = DB::select("SELECT pe.id_perawat, pe.username, pe.password, pe.nama, pe.id_poli, po.nama_poli 
+        FROM perawat pe 
+        LEFT JOIN poliklinik po ON pe.id_poli=po.id_poli
+        WHERE pe.id_perawat='$id'");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
 }

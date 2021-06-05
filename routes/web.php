@@ -54,3 +54,14 @@ $router->put('/poliklinik/status','ExampleController@ubahStatusAllPoli');
 
 // Get Daftar antrian berdasarkan Poli
 $router->get('/antrean/poliklinik','ExampleController@getAntreanWithPoliId');
+
+// Insert Perawat.
+$router->post('/perawat','ExampleController@insertPerawat');
+// Edit Perawat (Id tertentu).
+$router->put('/perawat/{id}','ExampleController@editPerawat');
+// Delete Perawat (Id tertentu).
+$router->delete('/perawat/{id}','ExampleController@deletePerawat');
+// Get Perawat (Semua).
+$router->get('/perawat','ExampleController@getAllPerawat');
+// Get Perawat (Id tertentu).
+$router->get('/perawat/{id}','ExampleController@getPerawat');
