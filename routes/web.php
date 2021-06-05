@@ -65,3 +65,5 @@ $router->delete('/perawat/{id}','ExampleController@deletePerawat');
 $router->get('/perawat','ExampleController@getAllPerawat');
 // Get Perawat (Id tertentu).
 $router->get('/perawat/{id}','ExampleController@getPerawat');
+// Perawat Login.
+$router->post('/perawat/login','ExampleController@loginPerawat');

@@ -193,4 +193,15 @@ class ExampleController extends Controller
         }
     }
 
+    public function loginPerawat(Request $request){
+        $username = $request["username"];
+        $password = $request["password"];
+        $result = DB::select("SELECT * FROM perawat WHERE username = '$username' AND password = '$password'");
+        if($result != null){
+            return response()->json(true, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
 }
