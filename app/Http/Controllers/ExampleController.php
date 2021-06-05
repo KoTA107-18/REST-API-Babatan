@@ -32,7 +32,18 @@ class ExampleController extends Controller
     }
 
     public function getPoliklinik(){
-        $result = DB::select("SELECT * FROM poliklinik");
+        $result = [];
+        $resultPoli = DB::select("SELECT * FROM poliklinik");
+
+        $i = 0;
+        foreach ($resultPoli as $row) {
+            $result[$i] = $row;
+            $idPoli = $row->id_poli;
+            $resultJadwal = DB::select("SELECT * FROM jadwal WHERE id_poli='$idPoli'");
+            $result[$i]->jadwal = $resultJadwal;
+            $i++;
+        }
+
         if($result != null){
             return response()->json($result, 200);
         } else {
