@@ -198,7 +198,7 @@ class ExampleController extends Controller
         $password = $request["password"];
         $result = DB::select("SELECT * FROM perawat WHERE username = '$username' AND password = '$password'");
         if($result != null){
-            return response()->json(true, 200);
+            return response()->json($result, 200);
         } else {
             return response()->json(false, 404);
         }
