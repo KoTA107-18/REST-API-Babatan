@@ -26,22 +26,19 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     });
 });
 
-$router->get('/administrator/login','ExampleController@administratorLogin');
-
-$router->get('/admin','ExampleController@getAdmin');
-
-// Daftar Antre Hari Ini
-$router->post('/ticket/daftar','ExampleController@registerAntreanHariIni');
-
-// Cek apakah sudah ambil tiket atau belum.
-$router->get('/ticket/check','ExampleController@checkStatusTicket');
-
-// Ubah status
-$router->put('/ticket/ubah','ExampleController@ubahAntrean');
+// --- Administrator ---
+// Admin Login
+$router->post('/administrator/login','ExampleController@administratorLogin');
 
 // --- Antrean ---
-// Get Antrean berdasarkan Poliklinik.
-$router->get('/antrean/poliklinik/{id}','ExampleController@getAntreanWithPoliId');
+// Get Antrean berdasarkan Poliklinik (Antrean Utama).
+$router->get('/antrean/poliklinik/utama/{id}','ExampleController@getAntreanWithPoliId');
+// Get Antrean berdasarkan Poliklinik (Antrean Sementara).
+$router->get('/antrean/poliklinik/sementara/{id}','ExampleController@getAntreanWithPoliIdSementara');
+// Update Antrean Status.
+$router->put('/antrean','ExampleController@editAntrean');
+// Insert Antrean.
+$router->post('/antrean','ExampleController@insertAntrean');
 
 // --- Poliklinik ---
 // Get Poliklinik (Semua).
