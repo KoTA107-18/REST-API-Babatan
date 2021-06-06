@@ -39,8 +39,9 @@ $router->get('/ticket/check','ExampleController@checkStatusTicket');
 // Ubah status
 $router->put('/ticket/ubah','ExampleController@ubahAntrean');
 
-// Get Daftar antrian berdasarkan Poli
-$router->get('/antrean/poliklinik','ExampleController@getAntreanWithPoliId');
+// --- Antrean ---
+// Get Antrean berdasarkan Poliklinik.
+$router->get('/antrean/poliklinik/{id}','ExampleController@getAntreanWithPoliId');
 
 // --- Poliklinik ---
 // Get Poliklinik (Semua).

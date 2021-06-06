@@ -31,6 +31,91 @@ class ExampleController extends Controller
         }
     }
 
+
+    public function registerAntreanHariIni(Request $request){
+        $id_jadwal_pasien = $request["id_jadwal_pasien"];
+        $id_poli = $request["id_poli"];
+        $id_hari = $request["id_hari"];
+        $username = $request["username"];
+        $nomor_antrean = $request["nomor_antrean"];
+        $tipe_booking = $request["tipe_booking"];
+        $tgl_pelayanan = $request["tgl_pelayanan"];
+        $jam_daftar_antrean = $request["jam_daftar_antrean"];
+        $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
+        $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
+        $status_antrean = $request["status_antrean"];
+
+        if($tipe_booking == 1){
+            DB::insert("INSERT INTO jadwal_pasien VALUES(
+                '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
+                '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
+                '$jam_mulai_dilayani',$jam_selesai_dilayani,'$status_antrean')");
+        } else {
+            DB::insert("INSERT INTO jadwal_pasien VALUES(
+                '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
+                '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
+                $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
+        }
+
+        
+    }
+
+    public function checkStatusTicket(Request $request){
+        $username = $request["username"];
+        $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE username = '$username' AND status_antrean = 1");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json($result, 404);
+        }
+    }
+
+    public function ubahAntrean(Request $request){
+        $id_poli = $request["id_poli"];
+        $id_hari = $request["id_hari"];
+        $username = $request["username"];
+        $nomor_antrean = $request["nomor_antrean"];
+        $tipe_booking = $request["tipe_booking"];
+        $tgl_pelayanan = $request["tgl_pelayanan"];
+        $jam_daftar_antrean = $request["jam_daftar_antrean"];
+        $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
+        $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
+        $status_antrean = $request["status_antrean"];
+
+        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean' WHERE username = '$username' AND status_antrean ='1'");
+    }
+
+    // Antrean
+    public function getAntreanWithPoliId(Request $request, $id){
+        $result = DB::select("SELECT
+            jadwal_pasien.nomor_antrean,
+            jadwal_pasien.tipe_booking,
+            jadwal_pasien.tgl_pelayanan,
+            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_mulai_dilayani,
+            jadwal_pasien.jam_selesai_dilayani,
+            jadwal_pasien.status_antrean,
+            p.id_poli,
+            p.nama_poli,
+            pa.id_pasien,
+            pa.username,
+            pa.no_handphone,
+            pa.kepala_keluarga,
+            pa.nama_lengkap,
+            pa.alamat,
+            pa.tgl_lahir
+        FROM jadwal_pasien 
+        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
+        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli WHERE jadwal_pasien.id_poli='$id'");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
+
+    // Poliklinik
     public function getAllPoliklinik(){
         $result = [];
         $resultPoli = DB::select("SELECT * FROM poliklinik");
@@ -116,74 +201,6 @@ class ExampleController extends Controller
         }
     }
 
-    public function deletePoliklinik($id){
-        DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
-        DB::delete("DELETE FROM poliklinik WHERE id_poli = '$id'");
-    }
-
-    public function getAntreanWithPoliId(Request $request){
-        $id_poli = $request["id_poli"];
-        $result = DB::select("SELECT * FROM jadwal_pasien WHERE id_poli='$id_poli'");
-        if($result != null){
-            return response()->json($result, 200);
-        } else {
-            return response()->json(false, 404);
-        }
-    }
-
-    public function registerAntreanHariIni(Request $request){
-        $id_jadwal_pasien = $request["id_jadwal_pasien"];
-        $id_poli = $request["id_poli"];
-        $id_hari = $request["id_hari"];
-        $username = $request["username"];
-        $nomor_antrean = $request["nomor_antrean"];
-        $tipe_booking = $request["tipe_booking"];
-        $tgl_pelayanan = $request["tgl_pelayanan"];
-        $jam_daftar_antrean = $request["jam_daftar_antrean"];
-        $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
-        $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
-        $status_antrean = $request["status_antrean"];
-
-        if($tipe_booking == 1){
-            DB::insert("INSERT INTO jadwal_pasien VALUES(
-                '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
-                '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
-                '$jam_mulai_dilayani',$jam_selesai_dilayani,'$status_antrean')");
-        } else {
-            DB::insert("INSERT INTO jadwal_pasien VALUES(
-                '$id_jadwal_pasien','$id_poli', '$id_hari', '$username',
-                '0', '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean',
-                $jam_mulai_dilayani,$jam_selesai_dilayani,'$status_antrean')");
-        }
-
-        
-    }
-
-    public function checkStatusTicket(Request $request){
-        $username = $request["username"];
-        $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE username = '$username' AND status_antrean = 1");
-        if($result != null){
-            return response()->json($result, 200);
-        } else {
-            return response()->json($result, 404);
-        }
-    }
-
-    public function ubahAntrean(Request $request){
-        $id_poli = $request["id_poli"];
-        $id_hari = $request["id_hari"];
-        $username = $request["username"];
-        $nomor_antrean = $request["nomor_antrean"];
-        $tipe_booking = $request["tipe_booking"];
-        $tgl_pelayanan = $request["tgl_pelayanan"];
-        $jam_daftar_antrean = $request["jam_daftar_antrean"];
-        $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
-        $jam_selesai_dilayani = $request["jam_selesai_dilayani"];
-        $status_antrean = $request["status_antrean"];
-
-        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean' WHERE username = '$username' AND status_antrean ='1'");
-    }
-
     public function ubahStatusAllPoli(Request $request){
         $i=0;
         while($request[$i] != null){
@@ -201,6 +218,12 @@ class ExampleController extends Controller
             return response()->json(false, 404);
         }
     }
+
+    public function deletePoliklinik($id){
+        DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
+        DB::delete("DELETE FROM poliklinik WHERE id_poli = '$id'");
+    }
+    
 
 
     // Perawat.
