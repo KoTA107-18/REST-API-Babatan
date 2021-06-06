@@ -64,7 +64,7 @@ class ExampleController extends Controller
     }
 
     public function getRiwayatWithPoliId(Request $request, $id){
-        $result = DB::select("SELECT * FROM riwayat_antrean");
+        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_poli='$id'");
         if($result != null){
             return response()->json($result, 200);
         } else {
