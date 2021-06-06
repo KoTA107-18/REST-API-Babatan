@@ -63,6 +63,15 @@ class ExampleController extends Controller
         }
     }
 
+    public function getRiwayatWithPoliId(Request $request, $id){
+        $result = DB::select("SELECT * FROM riwayat_antrean");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
     public function getAntreanWithPoliIdSementara(Request $request, $id){
         $result = DB::select("SELECT
             jadwal_pasien.nomor_antrean,

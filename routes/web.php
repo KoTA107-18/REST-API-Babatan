@@ -31,6 +31,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 $router->post('/administrator/login','ExampleController@administratorLogin');
 
 // --- Antrean ---
+// Get Riwayat Antrean berdasarkan Poliklinik.
+$router->get('/antrean/poliklinik/riwayat/{id}','ExampleController@getRiwayatWithPoliId');
 // Get Antrean berdasarkan Poliklinik (Antrean Utama).
 $router->get('/antrean/poliklinik/utama/{id}','ExampleController@getAntreanWithPoliId');
 // Get Antrean berdasarkan Poliklinik (Antrean Sementara).
