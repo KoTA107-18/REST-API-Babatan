@@ -26,13 +26,9 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     });
 });
 
-$router->get('/pasien/login','ExampleController@pasienLogin');
-
 $router->get('/administrator/login','ExampleController@administratorLogin');
 
 $router->get('/admin','ExampleController@getAdmin');
-
-$router->get('/poliklinik','ExampleController@getPoliklinik');
 
 // Daftar Antre Hari Ini
 $router->post('/ticket/daftar','ExampleController@registerAntreanHariIni');
@@ -43,18 +39,25 @@ $router->get('/ticket/check','ExampleController@checkStatusTicket');
 // Ubah status
 $router->put('/ticket/ubah','ExampleController@ubahAntrean');
 
-// Ubah status semua poli.
-$router->post('/poliklinik','ExampleController@insertPoliklinik');
-
-// Ubah Poliklinik
-$router->put('/poliklinik/ubah','ExampleController@ubahPoliklinik');
-
-// Ubah status semua poli.
-$router->put('/poliklinik/status','ExampleController@ubahStatusAllPoli');
-
 // Get Daftar antrian berdasarkan Poli
 $router->get('/antrean/poliklinik','ExampleController@getAntreanWithPoliId');
 
+// --- Poliklinik ---
+// Get Poliklinik (Semua).
+$router->get('/poliklinik','ExampleController@getAllPoliklinik');
+// Get Poliklinik (Id tertentu).
+$router->get('/poliklinik/{id}','ExampleController@getPoliklinik');
+// Insert Poliklinik.
+$router->post('/poliklinik','ExampleController@insertPoliklinik');
+// Edit Status Poliklinik (portal).
+$router->put('/poliklinik/status','ExampleController@ubahStatusAllPoli');
+// Edit Poliklinik
+$router->put('/poliklinik/{id}','ExampleController@ubahPoliklinik');
+// Delete Poliklinik
+$router->delete('/poliklinik/{id}','ExampleController@deletePoliklinik');
+// Method ada, tetapi tidak digunakan di production. (Mempertimbangkan apabila ada data yang berelasi)
+
+// --- Perawat ---
 // Insert Perawat.
 $router->post('/perawat','ExampleController@insertPerawat');
 // Edit Perawat (Id tertentu).

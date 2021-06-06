@@ -31,7 +31,7 @@ class ExampleController extends Controller
         }
     }
 
-    public function getPoliklinik(){
+    public function getAllPoliklinik(){
         $result = [];
         $resultPoli = DB::select("SELECT * FROM poliklinik");
 
@@ -51,9 +51,19 @@ class ExampleController extends Controller
         }
     }
 
-    public function getAntreanWithPoliId(Request $request){
-        $id_poli = $request["id_poli"];
-        $result = DB::select("SELECT * FROM jadwal_pasien WHERE id_poli='$id_poli'");
+    public function getPoliklinik($id){
+        $result = [];
+        $resultPoli = DB::select("SELECT * FROM poliklinik WHERE id_poli='$id'");
+
+        $i = 0;
+        foreach ($resultPoli as $row) {
+            $result[$i] = $row;
+            $idPoli = $row->id_poli;
+            $resultJadwal = DB::select("SELECT * FROM jadwal WHERE id_poli='$idPoli'");
+            $result[$i]->jadwal = $resultJadwal;
+            $i++;
+        }
+
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -62,16 +72,26 @@ class ExampleController extends Controller
     }
 
     public function insertPoliklinik(Request $request){
-        $id_poli = $request["id_poli"];
         $nama_poli = $request["nama_poli"];
         $desc_poli = $request["desc_poli"];
         $status_poli = $request["status_poli"];
         $rerata = $request["rerata_waktu_pelayanan"];
         DB::insert("INSERT poliklinik VALUES(0,'$nama_poli', '$desc_poli', $status_poli, $rerata)");
+        $jadwal = $request["jadwal"];
+        foreach ($jadwal as $jadwalPerHari) {
+            $hari = $jadwalPerHari["hari"];
+            $jam_buka_booking = $jadwalPerHari["jam_buka_booking"];
+            $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
+            DB::insert("INSERT INTO jadwal SET 
+                hari='$hari', 
+                jam_buka_booking='$jam_buka_booking', 
+                jam_tutup_booking='$jam_tutup_booking',
+                id_poli = (SELECT id_poli FROM poliklinik WHERE nama_poli='$nama_poli' LIMIT 1)");
+        }
     }
 
-    public function ubahPoliklinik(Request $request){
-        $id_poli = $request["id_poli"];
+    public function ubahPoliklinik(Request $request, $id){
+        $id_poli = $id;
         $nama_poli = $request["nama_poli"];
         $desc_poli = $request["desc_poli"];
         $status_poli = $request["status_poli"];
@@ -80,6 +100,35 @@ class ExampleController extends Controller
         DB::update("UPDATE poliklinik SET nama_poli = '$nama_poli',
         desc_poli = '$desc_poli', status_poli = '$status_poli',
         rerata_waktu_pelayanan = '$rerata' WHERE id_poli = '$id_poli'");
+
+        DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
+
+        $jadwal = $request["jadwal"];
+        foreach ($jadwal as $jadwalPerHari) {
+            $hari = $jadwalPerHari["hari"];
+            $jam_buka_booking = $jadwalPerHari["jam_buka_booking"];
+            $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
+            DB::insert("INSERT INTO jadwal SET 
+                hari='$hari', 
+                jam_buka_booking='$jam_buka_booking', 
+                jam_tutup_booking='$jam_tutup_booking',
+                id_poli = '$id_poli'");
+        }
+    }
+
+    public function deletePoliklinik($id){
+        DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
+        DB::delete("DELETE FROM poliklinik WHERE id_poli = '$id'");
+    }
+
+    public function getAntreanWithPoliId(Request $request){
+        $id_poli = $request["id_poli"];
+        $result = DB::select("SELECT * FROM jadwal_pasien WHERE id_poli='$id_poli'");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
     }
 
     public function registerAntreanHariIni(Request $request){
