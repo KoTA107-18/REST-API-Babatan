@@ -84,6 +84,38 @@ class ExampleController extends Controller
         }
     }
 
+    public function getAntreanWithPasienId(Request $request, $id){
+        $result = DB::select("SELECT
+            jadwal_pasien.nomor_antrean,
+            jadwal_pasien.tipe_booking,
+            jadwal_pasien.tgl_pelayanan,
+            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_mulai_dilayani,
+            jadwal_pasien.jam_selesai_dilayani,
+            jadwal_pasien.status_antrean,
+            jadwal_pasien.hari,
+            p.id_poli,
+            p.nama_poli,
+            pa.id_pasien,
+            pa.username,
+            pa.no_handphone,
+            pa.kepala_keluarga,
+            pa.nama_lengkap,
+            pa.alamat,
+            pa.tgl_lahir,
+            pa.jenis_pasien
+        FROM jadwal_pasien 
+        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
+        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
+        WHERE jadwal_pasien.id_pasien='$id' AND 
+        (jadwal_pasien.status_antrean!=3 AND jadwal_pasien.status_antrean!=5)");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
     public function getAntreanWithPoliIdSementara(Request $request, $id){
         $result = DB::select("SELECT
             jadwal_pasien.nomor_antrean,
@@ -239,12 +271,12 @@ class ExampleController extends Controller
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
                     '$id_poli', '$hari', '$id_pasien',
                     NULL, 1, '$tgl_pelayanan', CURRENT_TIME(),
-                    '$jam_mulai_dilayani', NULL, '$jenis_pasien')");
+                    '$jam_mulai_dilayani', NULL, 1)");
             } else {
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
                     '$id_poli', '$hari', '$id_pasien',
                     NULL, 0, CURRENT_DATE(), CURRENT_TIME(),
-                    NULL, NULL, '$jenis_pasien')");
+                    NULL, NULL, 1)");
             }
             return response()->json([
                 'success'   => true,
