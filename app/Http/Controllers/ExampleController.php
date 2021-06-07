@@ -220,6 +220,7 @@ class ExampleController extends Controller
         $id_poli = $request["id_poli"];
         $id_pasien = $request["id_pasien"];
         $tipe_booking = $request["tipe_booking"];
+        $jenis_pasien = $request["jenis_pasien"];
 
         // Jika masih ada antrean yang berjalan.
         $resultCheckRegist = DB::select("SELECT * FROM `jadwal_pasien` 
@@ -238,12 +239,12 @@ class ExampleController extends Controller
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
                     '$id_poli', '$hari', '$id_pasien',
                     NULL, 1, '$tgl_pelayanan', CURRENT_TIME(),
-                    '$jam_mulai_dilayani', NULL, 1)");
+                    '$jam_mulai_dilayani', NULL, '$jenis_pasien')");
             } else {
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
                     '$id_poli', '$hari', '$id_pasien',
                     NULL, 0, CURRENT_DATE(), CURRENT_TIME(),
-                    NULL, NULL, 1)");
+                    NULL, NULL, '$jenis_pasien')");
             }
             return response()->json([
                 'success'   => true,
