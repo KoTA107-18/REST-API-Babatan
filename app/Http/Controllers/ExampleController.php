@@ -236,12 +236,12 @@ class ExampleController extends Controller
                 $tgl_pelayanan = $request["tgl_pelayanan"];
                 $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
-                    '$id_poli', '$hari', '$id_pasien',
+                    $id_poli, '$hari', $id_pasien,
                     NULL, 1, '$tgl_pelayanan', CURRENT_TIME(),
                     '$jam_mulai_dilayani', NULL, 1)");
             } else {
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
-                    '$id_poli', '$hari', '$id_pasien',
+                    $id_poli, '$hari', $id_pasien,
                     NULL, 0, CURRENT_DATE(), CURRENT_TIME(),
                     NULL, NULL, 1)");
             }
