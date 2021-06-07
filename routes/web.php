@@ -37,6 +37,8 @@ $router->get('/antrean/poliklinik/riwayat/{id}','ExampleController@getRiwayatWit
 $router->get('/antrean/poliklinik/utama/{id}','ExampleController@getAntreanWithPoliId');
 // Get Antrean berdasarkan Poliklinik (Antrean Sementara).
 $router->get('/antrean/poliklinik/sementara/{id}','ExampleController@getAntreanWithPoliIdSementara');
+// Get Riwayat berdasarkan Poliklinik (Antrean Selesai).
+$router->get('/antrean/poliklinik/selesai/{id}','ExampleController@getAntreanSelesaiWithPoliId');
 // Update Antrean Status.
 $router->put('/antrean','ExampleController@editAntrean');
 // Insert Antrean.

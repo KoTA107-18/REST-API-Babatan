@@ -55,7 +55,8 @@ class ExampleController extends Controller
             pa.jenis_pasien
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean!=4");
+        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
+        WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean!=4 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -94,7 +95,39 @@ class ExampleController extends Controller
             pa.jenis_pasien
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean=4");
+        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
+        WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
+
+    public function getAntreanSelesaiWithPoliId(Request $request, $id){
+        $result = DB::select("SELECT
+            jadwal_pasien.nomor_antrean,
+            jadwal_pasien.tipe_booking,
+            jadwal_pasien.tgl_pelayanan,
+            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_mulai_dilayani,
+            jadwal_pasien.jam_selesai_dilayani,
+            jadwal_pasien.status_antrean,
+            jadwal_pasien.hari,
+            p.id_poli,
+            p.nama_poli,
+            pa.id_pasien,
+            pa.username,
+            pa.no_handphone,
+            pa.kepala_keluarga,
+            pa.nama_lengkap,
+            pa.alamat,
+            pa.tgl_lahir,
+            pa.jenis_pasien
+        FROM jadwal_pasien 
+        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
+        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
+        WHERE jadwal_pasien.id_poli='$id' AND (jadwal_pasien.status_antrean=3 OR jadwal_pasien.status_antrean=5) AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -141,7 +174,7 @@ class ExampleController extends Controller
         
         // Jika status selesai / cancel. Langsung dipindah ke entitas Riwayat
         if(($status_antrean == 5) || ($status_antrean == 3)){
-            DB::delete("DELETE FROM jadwal_pasien WHERE id_poli='$id_poli' AND hari='$hari' AND id_pasien='$id_pasien'");
+            // DB::delete("DELETE FROM jadwal_pasien WHERE id_poli='$id_poli' AND hari='$hari' AND id_pasien='$id_pasien'");
             $nomor_antrean = $result[0]->nomor_antrean;
             $tipe_booking = $result[0]->tipe_booking;
             $tgl_pelayanan =$result[0]->tgl_pelayanan;
@@ -164,10 +197,10 @@ class ExampleController extends Controller
                 '$nama_poli', '$username', '$no_handphone',
                 '$kepala_keluarga', '$tgl_lahir', '$alamat',
                 '$nama_lengkap', NULLIF('$jenis_pasien',''))");
-        } else {
-            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
-                WHERE id_poli = '$id_poli' AND hari='$hari' AND $id_pasien='$id_pasien'");
         }
+
+        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
+                WHERE id_poli = '$id_poli' AND hari='$hari' AND $id_pasien='$id_pasien'");
         
     }
 
@@ -178,11 +211,12 @@ class ExampleController extends Controller
         $tipe_booking = $request["tipe_booking"];
 
         // Jika masih ada antrean yang berjalan.
-        $resultCheckRegist = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_pasien = '$id_pasien'");
+        $resultCheckRegist = DB::select("SELECT * FROM `jadwal_pasien` 
+        WHERE id_pasien = '$id_pasien' AND (status_antrean!=3 AND status_antrean!=5)");
         if($resultCheckRegist != null){
             return response()->json([
                 'success'   => false,
-                'message'   => 'Anda sudah mengambil antrean!',
+                'message'   => 'Anda masih memiliki antrean berlangsung!',
                 'data'      => ''
             ], 409);
         } else {
