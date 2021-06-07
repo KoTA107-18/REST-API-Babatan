@@ -57,9 +57,8 @@ class ExampleController extends Controller
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
         WHERE jadwal_pasien.id_poli='$id' AND 
-        jadwal_pasien.status_antrean!=4 AND 
-        (jadwal_pasien.status_antrean!=3 OR jadwal_pasien.status_antrean!=5) 
-        AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
+        (jadwal_pasien.status_antrean=1 OR jadwal_pasien.status_antrean=2) AND 
+        jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
         if($result != null){
             return response()->json($result, 200);
         } else {
