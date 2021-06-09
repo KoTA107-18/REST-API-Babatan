@@ -33,25 +33,16 @@ class ExampleController extends Controller
     }
 
     // Antrean
-
     public function getAntreanInfo(){
-        /*
-        $resultPoli = DB::select("SELECT 
-            COUNT(jadwal_pasien.status_antrean) AS 'total_antrean',
-            COUNT(case jadwal_pasien.status_antrean when 4 then 1 else null end) AS 'antrean_sementara', 
-            MAX(case jadwal_pasien.status_antrean when 2 then jadwal_pasien.nomor_antrean else 0 end) AS 'nomor_antrean',
-            poliklinik.id_poli,
-            poliklinik.status_poli, 
-            poliklinik.nama_poli
-                FROM poliklinik LEFT JOIN jadwal_pasien ON poliklinik.id_poli=jadwal_pasien.id_poli
-                WHERE (jadwal_pasien.tgl_pelayanan=CURRENT_DATE() OR jadwal_pasien.tgl_pelayanan IS NULL)
-                GROUP BY poliklinik.id_poli
-                ORDER BY poliklinik.id_poli ASC;");*/
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
 
         $resultPoli = DB::select("SELECT 
-        COUNT(case when jadwal_pasien.tgl_pelayanan=CURRENT_DATE() then 1 else null end) AS 'total_antrean',
-        COUNT(case when (jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE())  then 1 else null end) AS 'antrean_sementara', 
-        MAX(case when (jadwal_pasien.status_antrean=2 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()) then jadwal_pasien.nomor_antrean else 0 end) AS 'nomor_antrean',
+        COUNT(case when jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' then 1 else null end) AS 'total_antrean',
+        COUNT(case when (jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE')  then 1 else null end) AS 'antrean_sementara', 
+        MAX(case when (jadwal_pasien.status_antrean=2 AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE') then jadwal_pasien.nomor_antrean else 0 end) AS 'nomor_antrean',
         poliklinik.id_poli,
         poliklinik.status_poli, 
         poliklinik.nama_poli
@@ -67,11 +58,16 @@ class ExampleController extends Controller
     }
 
     public function getAntreanWithPoliId(Request $request, $id){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
         $result = DB::select("SELECT
             jadwal_pasien.nomor_antrean,
             jadwal_pasien.tipe_booking,
             jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_booking,
+            jadwal_pasien.waktu_daftar_antrean,
             jadwal_pasien.jam_mulai_dilayani,
             jadwal_pasien.jam_selesai_dilayani,
             jadwal_pasien.status_antrean,
@@ -91,7 +87,7 @@ class ExampleController extends Controller
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
         WHERE jadwal_pasien.id_poli='$id' AND 
         (jadwal_pasien.status_antrean=1 OR jadwal_pasien.status_antrean=2) AND 
-        jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
+        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE'");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -122,7 +118,8 @@ class ExampleController extends Controller
             jadwal_pasien.nomor_antrean,
             jadwal_pasien.tipe_booking,
             jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_booking,
+            jadwal_pasien.waktu_daftar_antrean,
             jadwal_pasien.jam_mulai_dilayani,
             jadwal_pasien.jam_selesai_dilayani,
             jadwal_pasien.status_antrean,
@@ -150,11 +147,16 @@ class ExampleController extends Controller
     }
 
     public function getAntreanWithPoliIdSementara(Request $request, $id){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
         $result = DB::select("SELECT
             jadwal_pasien.nomor_antrean,
             jadwal_pasien.tipe_booking,
             jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_booking,
+            jadwal_pasien.waktu_daftar_antrean,
             jadwal_pasien.jam_mulai_dilayani,
             jadwal_pasien.jam_selesai_dilayani,
             jadwal_pasien.status_antrean,
@@ -172,7 +174,7 @@ class ExampleController extends Controller
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
+        WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE'");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -181,11 +183,16 @@ class ExampleController extends Controller
     }
 
     public function getAntreanSelesaiWithPoliId(Request $request, $id){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
         $result = DB::select("SELECT
             jadwal_pasien.nomor_antrean,
             jadwal_pasien.tipe_booking,
             jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_daftar_antrean,
+            jadwal_pasien.jam_booking,
+            jadwal_pasien.waktu_daftar_antrean,
             jadwal_pasien.jam_mulai_dilayani,
             jadwal_pasien.jam_selesai_dilayani,
             jadwal_pasien.status_antrean,
@@ -203,7 +210,7 @@ class ExampleController extends Controller
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND (jadwal_pasien.status_antrean=3 OR jadwal_pasien.status_antrean=5) AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()");
+        WHERE jadwal_pasien.id_poli='$id' AND (jadwal_pasien.status_antrean=3 OR jadwal_pasien.status_antrean=5) AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE'");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -218,9 +225,13 @@ class ExampleController extends Controller
         SUDAH_DILAYANI = 3;
         DILEWATI = 4;
         DIBATALKAN = 5; */
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
 
         $id_poli = $request["id_poli"];
-        $hari = $request["hari"];
+        $tgl_pelayanan = $request["tgl_pelayanan"];
         $id_pasien = $request["id_pasien"];
         $status_antrean = $request["status_antrean"];
 
@@ -228,7 +239,8 @@ class ExampleController extends Controller
         jadwal_pasien.nomor_antrean,
         jadwal_pasien.tipe_booking,
         jadwal_pasien.tgl_pelayanan,
-        jadwal_pasien.jam_daftar_antrean,
+        jadwal_pasien.jam_booking,
+        jadwal_pasien.waktu_daftar_antrean,
         jadwal_pasien.jam_mulai_dilayani,
         jadwal_pasien.jam_selesai_dilayani,
         jadwal_pasien.status_antrean,
@@ -245,8 +257,10 @@ class ExampleController extends Controller
         pa.jenis_pasien
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli WHERE 
-        jadwal_pasien.id_poli='$id_poli' AND jadwal_pasien.hari='$hari' AND jadwal_pasien.id_pasien='$id_pasien'");
+        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
+        WHERE jadwal_pasien.id_poli='$id_poli' AND 
+        jadwal_pasien.tgl_pelayanan='$tgl_pelayanan' AND 
+        jadwal_pasien.id_pasien='$id_pasien'");
         
         // Jika status selesai / cancel. Langsung dipindah ke entitas Riwayat
         if(($status_antrean == 5) || ($status_antrean == 3)){
@@ -254,7 +268,8 @@ class ExampleController extends Controller
             $nomor_antrean = $result[0]->nomor_antrean;
             $tipe_booking = $result[0]->tipe_booking;
             $tgl_pelayanan =$result[0]->tgl_pelayanan;
-            $jam_daftar_antrean =$result[0]->jam_daftar_antrean;
+            $jam_booking =$result[0]->jam_booking;
+            $waktu_daftar_antrean =$result[0]->waktu_daftar_antrean;
             $jam_mulai_dilayani =$result[0]->jam_mulai_dilayani;
             $jam_selesai_dilayani =$result[0]->jam_selesai_dilayani;
             $nama_poli =$result[0]->nama_poli;
@@ -268,15 +283,23 @@ class ExampleController extends Controller
 
             DB::insert("INSERT INTO riwayat_antrean VALUES(
                 0, '$id_poli', '$id_pasien', NULLIF('$nomor_antrean',''),
-                '$tipe_booking', '$tgl_pelayanan', '$jam_daftar_antrean', 
+                '$tipe_booking', '$tgl_pelayanan', '$jam_booking', '$waktu_daftar_antrean', 
                 NULLIF('$jam_mulai_dilayani',''),NULLIF('$jam_selesai_dilayani',''), '$status_antrean',
                 '$nama_poli', '$username', '$no_handphone',
                 '$kepala_keluarga', '$tgl_lahir', '$alamat',
                 '$nama_lengkap', NULLIF('$jenis_pasien',''))");
         }
 
-        DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
-                WHERE id_poli = '$id_poli' AND hari='$hari' AND $id_pasien='$id_pasien'");
+        if($status_antrean == 2){
+            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_mulai_dilayani = '$CURRENT_TIME'
+                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND $id_pasien='$id_pasien'");
+        } else if($status_antrean == 3){
+            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_selesai_dilayani = '$CURRENT_TIME'
+                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND $id_pasien='$id_pasien'");
+        } else {
+            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
+                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND $id_pasien='$id_pasien'");
+        }
         
     }
 
@@ -299,6 +322,7 @@ class ExampleController extends Controller
         int $id_poli, 
         int $id_pasien,
         int $jenis_pasien){
+            date_default_timezone_set("Asia/Jakarta");
             $status = false;
             $CURRENT_DATE = date("Y-m-d", strtotime("now"));
             $CURRENT_TIME = date("H:i", strtotime("now"));
@@ -358,6 +382,7 @@ class ExampleController extends Controller
         int $jenis_pasien,
         string $tgl_pelayanan,
         string $jam_booking){
+            date_default_timezone_set("Asia/Jakarta");
             // Inisialisasi
             $CURRENT_TIMEDATE = date("Y-m-d H:i:s", strtotime("now"));
             $jamBookingIterator = $jam_booking;
@@ -395,11 +420,11 @@ class ExampleController extends Controller
 
 
     public function insertAntrean(Request $request){
+        date_default_timezone_set("Asia/Jakarta");
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
         $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
         
-
         $hari = $request["hari"];
         $id_poli = $request["id_poli"];
         $id_pasien = $request["id_pasien"];
