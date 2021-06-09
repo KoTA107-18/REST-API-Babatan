@@ -35,6 +35,7 @@ class ExampleController extends Controller
     // Antrean
 
     public function getAntreanInfo(){
+        /*
         $resultPoli = DB::select("SELECT 
             COUNT(jadwal_pasien.status_antrean) AS 'total_antrean',
             COUNT(case jadwal_pasien.status_antrean when 4 then 1 else null end) AS 'antrean_sementara', 
@@ -45,7 +46,18 @@ class ExampleController extends Controller
                 FROM poliklinik LEFT JOIN jadwal_pasien ON poliklinik.id_poli=jadwal_pasien.id_poli
                 WHERE (jadwal_pasien.tgl_pelayanan=CURRENT_DATE() OR jadwal_pasien.tgl_pelayanan IS NULL)
                 GROUP BY poliklinik.id_poli
-                ORDER BY poliklinik.id_poli ASC;");
+                ORDER BY poliklinik.id_poli ASC;");*/
+
+        $resultPoli = DB::select("SELECT 
+        COUNT(case when jadwal_pasien.tgl_pelayanan=CURRENT_DATE() then 1 else null end) AS 'total_antrean',
+        COUNT(case when (jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE())  then 1 else null end) AS 'antrean_sementara', 
+        MAX(case when (jadwal_pasien.status_antrean=2 AND jadwal_pasien.tgl_pelayanan=CURRENT_DATE()) then jadwal_pasien.nomor_antrean else 0 end) AS 'nomor_antrean',
+        poliklinik.id_poli,
+        poliklinik.status_poli, 
+        poliklinik.nama_poli
+            FROM poliklinik LEFT JOIN jadwal_pasien ON poliklinik.id_poli=jadwal_pasien.id_poli
+            GROUP BY poliklinik.id_poli
+            ORDER BY poliklinik.id_poli ASC;");
 
         if($resultPoli != null){
             return response()->json($resultPoli, 200);
