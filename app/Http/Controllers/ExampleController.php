@@ -295,171 +295,74 @@ class ExampleController extends Controller
     }
 
     // Kebutuhan Insert Booking
-    private function isJadwalTersedia(string $id_poli, string $hari, string $jam_mulai_dilayani){
+    private function isJadwalTersedia(string $id_poli, string $hari, string $jam_booking){
         $resultCheckRegist = DB::select("SELECT * FROM `poliklinik` 
         JOIN jadwal ON poliklinik.id_poli=jadwal.id_poli 
         WHERE poliklinik.id_poli = '$id_poli' AND 
         jadwal.hari = '$hari' AND 
-        ('$jam_mulai_dilayani' >= jadwal.jam_buka_booking AND '$jam_mulai_dilayani' <= jadwal.jam_tutup_booking)");
+        ('$jam_booking' >= jadwal.jam_buka_booking AND '$jam_booking' <= jadwal.jam_tutup_booking)");
         return ($resultCheckRegist != null);
     }
 
-    private function prosesInsert(
-        string $hari, int $id_poli, int $id_pasien, int $tipe_booking, 
-        int $jenis_pasien, string $tgl_pelayanan, string $jam_mulai_dilayani){
+    private function kuotaBooking(
+        string $hari,
+        int $id_poli, 
+        int $id_pasien,
+        int $jenis_pasien,
+        string $tgl_pelayanan,
+        string $jam_booking){
+            // Inisialisasi
+            $CURRENT_TIMEDATE = date("Y-m-d H:i:s", strtotime("now"));
+            $jamBookingIterator = $jam_booking;
+            $jam = substr($jamBookingIterator, 0, 2) . '%';
+            $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` WHERE id_poli='$id_poli'");
+            $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND jam_booking LIKE '$jam'");
+            $antrean = 0;
+            if($resultAntrean != null){
+                $antrean = count($resultAntrean);
+            }
+            $status = false;
+            $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
+            $kuota = floor(60/$rataRata);
+            
+            while (($status == false) && (substr($jamBookingIterator, 0, 2) == substr($jam_booking, 0, 2)) ) {
+                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND jam_booking='$jamBookingIterator'");
+                if($result != null){
+                    if($result[0]->status_antrean == 5){
+                        $status = true;
+                    }
+                } else {
+                    $status = true;
+                }
+                if($status != true){
+                    $jamBookingIterator = date("H:i", strtotime($jamBookingIterator . ' + ' . $rataRata . ' minutes'));
+                }
+            }
 
-        /*
-        BELUM_DILAYANI = 1;
-        SEDANG_DILAYANI = 2;
-        SUDAH_DILAYANI = 3;
-        DILEWATI = 4;
-        DIBATALKAN = 5; */
+            if($status){
+                DB::insert("INSERT INTO jadwal_pasien VALUES(
+                    '$id_poli', '$hari', '$id_pasien',
+                    '0', '1', '$tgl_pelayanan', '$jamBookingIterator', '$CURRENT_TIMEDATE',
+                    NULL, NULL, 1)");
+                return true;
+            } else {
+                false;
+            }
+        }
 
+        
+    public function insertAntrean(Request $request){
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
-        $nomorAntrean;
-        $antrean = DB::select("SELECT * FROM jadwal_pasien 
-            WHERE tgl_pelayanan=CURRENT_DATE() AND id_poli='$id_poli'
-            ORDER BY jam_daftar_antrean DESC;");
-        $dataPoliklinik = DB::select("SELECT * FROM `poliklinik` 
-        JOIN jadwal ON poliklinik.id_poli=jadwal.id_poli 
-        WHERE poliklinik.id_poli = '$id_poli' AND jadwal.hari = '$hari';");
-        $antreanDiatas = null;
-        $antreanDiatas1 = null;
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
+        
 
-        if(count($antrean) >= 2){
-            $antreanDiatas     = $antrean[0];
-            $antreanDiatas1    = $antrean[1];
-        } else if(count($antrean) == 1){
-            $antreanDiatas     = $antrean[0];
-        }
-
-        // Jika diatasnya kosong.
-        if($antreanDiatas == null){
-            $nomorAntrean = 1;
-            // Proses insert.
-            if($tipe_booking == 0){
-                DB::insert("INSERT INTO jadwal_pasien VALUES(
-                    '$id_poli', '$hari', '$id_pasien',
-                    '$nomorAntrean', '$tipe_booking', '$CURRENT_DATE', '$CURRENT_TIME',
-                    '$CURRENT_TIME', NULL, 1)");
-            } else {
-                DB::insert("INSERT INTO jadwal_pasien VALUES(
-                    '$id_poli', '$hari', '$id_pasien',
-                    '$nomorAntrean', '$tipe_booking', '$tgl_pelayanan', '$CURRENT_TIME',
-                    '$jam_mulai_dilayani', NULL, 1)");
-            }
-            return true;
-        } else {
-            // Jika diatasnya tipe booking.
-            if($antreanDiatas->tipe_booking == 1){
-                // Jika belum dilayani (1)
-                if(($antreanDiatas->status_antrean == 1) && ($antreanDiatas1 != null)){
-                    $rerata         = $dataPoliklinik[0]->rerata_waktu_pelayanan;
-                    $jamMulai1      = strtotime($antreanDiatas->jam_mulai_dilayani);
-                    $jamMulai2      = strtotime($antreanDiatas1->jam_mulai_dilayani);
-                    if($CURRENT_TIME > $jamMulai1){
-                        $jamMulai1 = $waktuSekarang;
-                    }
-                    //menghitung selisih dengan hasil detik
-                    $diff    =$jamMulai1 - $jamMulai2;
-                    //membagi detik menjadi jam
-                    $jam    =floor($diff / (60 * 60));
-                    //membagi sisa detik setelah dikurangi $jam menjadi menit
-                    $menit    =floor(($diff - $jam * (60 * 60)) / 60);
-
-                    // Jika ada space
-                    if($menit >= $rerata * 2){
-                        // Maka insert
-                        $nomorAntrean = $antreanDiatas->nomor_antrean;
-
-                        if($tipe_booking == 0){
-                            DB::insert("INSERT INTO jadwal_pasien VALUES(
-                                '$id_poli', '$hari', '$id_pasien',
-                                '$nomorAntrean', '$tipe_booking', '$CURRENT_DATE', '$CURRENT_TIME',
-                                CURRENT_TIME(), NULL, 1)");
-                        } else {
-                            DB::insert("INSERT INTO jadwal_pasien VALUES(
-                                '$id_poli', '$hari', '$id_pasien',
-                                '$nomorAntrean', '$tipe_booking', '$tgl_pelayanan', '$CURRENT_TIME',
-                                '$jam_mulai_dilayani', NULL, 1)");
-                        }
-                        $statusPoliDiatas = $antreanDiatas->status_antrean;
-                        $idPasienDiatas = $antreanDiatas->id_pasien;
-                        DB::update("UPDATE jadwal_pasien 
-                        SET nomor_antrean = $nomorAntrean-1
-                        WHERE id_poli = '$id_poli' AND 
-                        hari='$hari' AND
-                        id_pasien='$idPasienDiatas' AND 
-                        status_antrean='$statusPoliDiatas' AND
-                        tgl_pelayanan='$CURRENT_DATE'");
-
-                        return true;
-
-                    } else {
-                        // Jika tidak ada space
-                        // Maka insert nomor antrean = 1
-                        $nomorAntrean = $antreanDiatas->nomor_antrean + 1;
-                        if($tipe_booking == 0){
-                            DB::insert("INSERT INTO jadwal_pasien VALUES(
-                                '$id_poli', '$hari', '$id_pasien',
-                                '$nomorAntrean', '$tipe_booking', '$CURRENT_DATE', '$CURRENT_TIME',
-                                '$CURRENT_TIME', NULL, 1)");
-                        } else {
-                            DB::insert("INSERT INTO jadwal_pasien VALUES(
-                                '$id_poli', '$hari', '$id_pasien',
-                                '$nomorAntrean', '$tipe_booking', '$tgl_pelayanan', '$CURRENT_TIME',
-                                '$jam_mulai_dilayani', NULL, 1)");
-                        }
-                        return true;
-                    }
-                    
-                } else {
-                    // DITANDAI NOTES
-                    // Jika 2,3,4,5 (sedang dilewat / dilayani / sudah dilayani / cancel)
-                    // Maka insert
-                    // Cancel harus case khusus karena bisa saja diatasnya belum dilayani
-                    $nomorAntrean = $antreanDiatas->nomor_antrean + 1;
-                    if($tipe_booking == 0){
-                        DB::insert("INSERT INTO jadwal_pasien VALUES(
-                            '$id_poli', '$hari', '$id_pasien',
-                            '$nomorAntrean', '$tipe_booking', '$CURRENT_DATE', '$CURRENT_TIME',
-                            '$CURRENT_TIME', NULL, 1)");
-                    } else {
-                        DB::insert("INSERT INTO jadwal_pasien VALUES(
-                            '$id_poli', '$hari', '$id_pasien',
-                            '$nomorAntrean', '$tipe_booking', '$tgl_pelayanan', '$CURRENT_TIME',
-                            '$jam_mulai_dilayani', NULL, 1)");
-                    }
-                    return true;
-                }
-            } else {
-                // Jika diatasnya tipe non booking.
-                // Proses insert.
-                $nomorAntrean = $antreanDiatas->nomor_antrean + 1;
-                if($tipe_booking == 0){
-                    DB::insert("INSERT INTO jadwal_pasien VALUES(
-                        '$id_poli', '$hari', '$id_pasien',
-                        '$nomorAntrean', '$tipe_booking', '$CURRENT_DATE', '$CURRENT_TIME',
-                        '$CURRENT_TIME', NULL, 1)");
-                }
-                // Booking tidak mungkin masuk antrean pada hari H.
-                return true;
-            }
-            
-        }
-
-    }
-
-    
-
-    public function insertAntrean(Request $request){
         $hari = $request["hari"];
         $id_poli = $request["id_poli"];
         $id_pasien = $request["id_pasien"];
         $tipe_booking = $request["tipe_booking"];
         $jenis_pasien = $request["jenis_pasien"];
-
+        
         // Jika sudah mengambil Antrean
         if($this->isAmbilAntrean($id_pasien) == true){
             return response()->json([
@@ -474,7 +377,7 @@ class ExampleController extends Controller
             // Jika Poliklinik aktif.
             if($this->isPoliklinikAktif($id_poli)){
                 // Proses Antrean
-                if($this->prosesInsert($hari, $id_poli, $id_pasien, $tipe_booking, $jenis_pasien, "", "")){
+                if(){
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
@@ -494,15 +397,21 @@ class ExampleController extends Controller
             // Jika Booking
             // Jika Poliklinik memiliki jadwal di waktu yang dipilih.
             $tgl_pelayanan = $request["tgl_pelayanan"];
-            $jam_mulai_dilayani = $request["jam_mulai_dilayani"];
-            if($this->isJadwalTersedia($id_poli, $hari, $jam_mulai_dilayani)){
+            $jam_booking = $request["jam_booking"];
+            if($this->isJadwalTersedia($id_poli, $hari, $jam_booking)){
                 // Proses Antrean
-                if($this->prosesInsert($hari, $id_poli, $id_pasien, $tipe_booking, $jenis_pasien, $tgl_pelayanan, $jam_mulai_dilayani)){
+                if($this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking)){
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
                         'data'      => ''
                     ], 200);
+                } else {
+                    return response()->json([
+                        'success'   => true,
+                        'message'   => 'Kuota untuk jam yang anda pilih telah penuh!',
+                        'data'      => ''
+                    ], 409);
                 }
             } else {
                 // Jika tidak memiliki waktu
