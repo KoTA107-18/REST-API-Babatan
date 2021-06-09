@@ -316,13 +316,9 @@ class ExampleController extends Controller
             }
 
             while (($status == false) AND ($jamIterator < $jamTutup)){
-                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator'");
+                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator' AND status_antrean!=5");
                 if($result == null){
                     $status = true;
-                } else {
-                    if($result[0]->status_antrean == 5){
-                        $status = true;
-                    }
                 }
                 if($status != true){
                     $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
@@ -377,12 +373,8 @@ class ExampleController extends Controller
             $kuota = floor(60/$rataRata);
             
             while (($status == false) && (substr($jamBookingIterator, 0, 2) == substr($jam_booking, 0, 2)) ) {
-                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND jam_booking='$jamBookingIterator'");
-                if($result != null){
-                    if($result[0]->status_antrean == 5){
-                        $status = true;
-                    }
-                } else {
+                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND jam_booking='$jamBookingIterator' AND status_antrean!=5");
+                if($result == null){
                     $status = true;
                 }
                 if($status != true){
