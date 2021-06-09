@@ -294,6 +294,57 @@ class ExampleController extends Controller
         return ($resultCheckRegist != null);
     }
 
+    private function kuotaNonBooking(
+        string $hari,
+        int $id_poli, 
+        int $id_pasien,
+        int $jenis_pasien){
+            $status = false;
+            $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+            $CURRENT_TIME = date("H:i", strtotime("now"));
+            $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
+            $jamIterator = date("H:i", strtotime(substr($CURRENT_TIME, 0, 2) . ':00'));
+            $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` JOIN `jadwal` ON poliklinik.id_poli=jadwal.id_poli WHERE poliklinik.id_poli='$id_poli' AND jadwal.hari='$hari'");
+            $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE'");
+            $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
+            $jamTutup = $resultInfoPoliklinik[0]->jam_tutup_booking;
+            $kuota = floor(60/$rataRata);
+
+            
+            while (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jamIterator))) {
+                $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
+            }
+
+            while (($status == false) AND ($jamIterator < $jamTutup)){
+                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator'");
+                if($result == null){
+                    $status = true;
+                } else {
+                    if($result[0]->status_antrean == 5){
+                        $status = true;
+                    }
+                }
+                if($status != true){
+                    $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
+                }
+            }
+
+            if($status){
+                DB::insert("INSERT INTO jadwal_pasien VALUES(
+                    '$id_poli', '$hari', '$id_pasien',
+                    '0', '0', '$CURRENT_DATE', '$jamIterator', '$CURRENT_TIMEDATE',
+                    NULL, NULL, 1)");
+                return true;
+            } else {
+                return false;
+            }
+
+            
+
+            
+
+    }
+
     // Kebutuhan Insert Booking
     private function isJadwalTersedia(string $id_poli, string $hari, string $jam_booking){
         $resultCheckRegist = DB::select("SELECT * FROM `poliklinik` 
@@ -346,11 +397,11 @@ class ExampleController extends Controller
                     NULL, NULL, 1)");
                 return true;
             } else {
-                false;
+                return false;
             }
-        }
+    }
 
-        
+
     public function insertAntrean(Request $request){
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
@@ -377,12 +428,18 @@ class ExampleController extends Controller
             // Jika Poliklinik aktif.
             if($this->isPoliklinikAktif($id_poli)){
                 // Proses Antrean
-                if(){
+                if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien)){
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
                         'data'      => ''
                     ], 200);
+                } else {
+                    return response()->json([
+                        'success'   => true,
+                        'message'   => 'Kuota pada hari ini telah penuh!',
+                        'data'      => ''
+                    ], 409);
                 }
             } else {
                 // Jika Poliklinik tidak aktif.
