@@ -39,7 +39,8 @@ class ExampleController extends Controller
             COUNT(jadwal_pasien.status_antrean) AS 'total_antrean',
             COUNT(case jadwal_pasien.status_antrean when 4 then 1 else null end) AS 'antrean_sementara', 
             MAX(case jadwal_pasien.status_antrean when 2 then jadwal_pasien.nomor_antrean else 0 end) AS 'nomor_antrean',
-            poliklinik.id_poli, 
+            poliklinik.id_poli,
+            poliklinik.status_poli, 
             poliklinik.nama_poli
                 FROM poliklinik LEFT JOIN jadwal_pasien ON poliklinik.id_poli=jadwal_pasien.id_poli
                 WHERE (jadwal_pasien.tgl_pelayanan=CURRENT_DATE() OR jadwal_pasien.tgl_pelayanan IS NULL)
