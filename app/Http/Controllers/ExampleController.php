@@ -455,7 +455,7 @@ class ExampleController extends Controller
                 } else {
                     return response()->json([
                         'success'   => true,
-                        'message'   => 'Kuota pada hari ini telah penuh!',
+                        'message'   => 'Kuota pada hari ini tidak tersedia!',
                         'data'      => ''
                     ], 409);
                 }
@@ -485,7 +485,7 @@ class ExampleController extends Controller
                 } else {
                     return response()->json([
                         'success'   => true,
-                        'message'   => 'Kuota untuk jam yang anda pilih telah penuh!',
+                        'message'   => 'Kuota untuk jam yang anda pilih tidak tersedia!',
                         'data'      => ''
                     ], 409);
                 }
