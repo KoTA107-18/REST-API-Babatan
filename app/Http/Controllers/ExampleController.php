@@ -424,7 +424,7 @@ class ExampleController extends Controller
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
         $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
-        
+
         $hari = $request["hari"];
         $id_poli = $request["id_poli"];
         $id_pasien = $request["id_pasien"];
@@ -446,6 +446,7 @@ class ExampleController extends Controller
             if($this->isPoliklinikAktif($id_poli)){
                 // Proses Antrean
                 if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien)){
+                    $this->sortNumber($id_poli, $CURRENT_DATE);
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
@@ -475,6 +476,7 @@ class ExampleController extends Controller
             if($this->isJadwalTersedia($id_poli, $hari, $jam_booking)){
                 // Proses Antrean
                 if($this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking)){
+                    $this->sortNumber($id_poli, $CURRENT_DATE);
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
@@ -498,6 +500,26 @@ class ExampleController extends Controller
             }
         }
         
+    }
+
+    // Sort Nomor Antrean
+
+    private function sortNumber(int $id_poli, string $tgl_pelayanan){
+        $result = DB::select("SELECT * FROM jadwal_pasien 
+        WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' 
+        ORDER BY jam_booking ASC, status_antrean ASC");
+
+        $i = 0;
+        while ($i < count($result)) {
+            $nomor = $i+1;
+            $idPasien = $result[$i]->id_pasien;
+            DB::update("UPDATE jadwal_pasien SET nomor_antrean='$nomor' 
+            WHERE id_poli='$id_poli' AND 
+            id_pasien='$idPasien' AND 
+            tgl_pelayanan='$tgl_pelayanan'");
+            $i++;
+        }
+
     }
 
 
