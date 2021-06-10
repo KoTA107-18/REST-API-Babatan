@@ -33,6 +33,22 @@ class ExampleController extends Controller
     }
 
     // Antrean
+    public function getEstimasi(Request $request){
+        $id_poli = $request["id_poli"];
+        $tgl_pelayanan = $request["tgl_pelayanan"];
+        $jam_booking = $request["jam_booking"];
+        $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` 
+        WHERE id_poli='$id_poli' AND 
+        tgl_pelayanan='$tgl_pelayanan' AND 
+        jam_booking < '$jam_booking' AND 
+        (status_antrean != 5 AND status_antrean !=3)");
+        $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` WHERE id_poli='$id_poli'");
+        $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
+
+        $estimasi = count($resultAntrean) * $rataRata;
+        return response()->json($estimasi, 200);
+    }
+
     public function getAntreanInfo(){
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_TIME = date("H:i", strtotime("now"));
