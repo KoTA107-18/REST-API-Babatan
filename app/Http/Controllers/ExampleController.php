@@ -57,7 +57,7 @@ class ExampleController extends Controller
             ], 409);
         } else {
             return response()->json([
-                'success'   => false,
+                'success'   => true,
                 'message'   => 'Berhasil!',
                 'data'      => ''
             ], 200);
