@@ -512,10 +512,13 @@ class ExampleController extends Controller
         $i = 0;
         while ($i < count($result)) {
             $nomor = $i+1;
+            $waktu_daftar_antrean = $result[$i]->waktu_daftar_antrean;
             $idPasien = $result[$i]->id_pasien;
             DB::update("UPDATE jadwal_pasien SET nomor_antrean='$nomor' 
-            WHERE id_poli='$id_poli' AND 
+            WHERE 
+            id_poli='$id_poli' AND 
             id_pasien='$idPasien' AND 
+            waktu_daftar_antrean='$waktu_daftar_antrean' AND
             tgl_pelayanan='$tgl_pelayanan'");
             $i++;
         }
