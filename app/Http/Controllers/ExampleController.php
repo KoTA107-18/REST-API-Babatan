@@ -32,6 +32,39 @@ class ExampleController extends Controller
         }
     }
 
+    public function checkPasien(Request $request){
+        $username = $request["username"];
+        $no_handphone = $request["no_handphone"];
+        $resultUsername     = DB::select("SELECT * FROM pasien WHERE username = '$username'");
+        $resultHandphone    = DB::select("SELECT * FROM pasien WHERE no_handphone = '$no_handphone'");
+        if(($resultUsername != null) && ($resultHandphone != null)){
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Username dan Nomor Handphone anda telah digunakan!',
+                'data'      => ''
+            ], 409);
+        } else if($resultUsername != null && $resultHandphone == null){
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Username anda telah digunakan!',
+                'data'      => ''
+            ], 409);
+        } else if($resultUsername == null && $resultHandphone != null){
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Nomor Handphone anda telah digunakan!',
+                'data'      => ''
+            ], 409);
+        } else {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Berhasil!',
+                'data'      => ''
+            ], 200);
+        }
+
+    }
+
     // Antrean
     public function getEstimasi(Request $request){
         $id_poli = $request["id_poli"];
