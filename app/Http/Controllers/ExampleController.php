@@ -476,7 +476,7 @@ class ExampleController extends Controller
             if($this->isJadwalTersedia($id_poli, $hari, $jam_booking)){
                 // Proses Antrean
                 if($this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking)){
-                    $this->sortNumber($id_poli, $CURRENT_DATE);
+                    $this->sortNumber($id_poli, $tgl_pelayanan);
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
