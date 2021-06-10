@@ -507,7 +507,7 @@ class ExampleController extends Controller
     private function sortNumber(int $id_poli, string $tgl_pelayanan){
         $result = DB::select("SELECT * FROM jadwal_pasien 
         WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' 
-        ORDER BY jam_booking ASC, status_antrean ASC");
+        ORDER BY jam_booking ASC, waktu_daftar_antrean ASC");
 
         $i = 0;
         while ($i < count($result)) {
