@@ -46,7 +46,9 @@ class ExampleController extends Controller
         $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
 
         $estimasi = count($resultAntrean) * $rataRata;
-        return response()->json($estimasi, 200);
+        $jamBook = date("H:i", strtotime($jam_booking . ' + ' . $estimasi . ' minutes'));
+
+        return response()->json($jamBook, 200);
     }
 
     public function getAntreanInfo(){
