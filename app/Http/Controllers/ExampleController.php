@@ -343,13 +343,13 @@ class ExampleController extends Controller
 
         if($status_antrean == 2){
             DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_mulai_dilayani = '$CURRENT_TIME'
-                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND $id_pasien='$id_pasien'");
+                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
         } else if($status_antrean == 3){
             DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_selesai_dilayani = '$CURRENT_TIME'
-                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND $id_pasien='$id_pasien'");
+                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
         } else {
             DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
-                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND $id_pasien='$id_pasien'");
+                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
         }
         
     }
