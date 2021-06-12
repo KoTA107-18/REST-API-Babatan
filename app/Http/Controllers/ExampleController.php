@@ -138,7 +138,8 @@ class ExampleController extends Controller
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
         WHERE jadwal_pasien.id_poli='$id' AND 
         (jadwal_pasien.status_antrean=1 OR jadwal_pasien.status_antrean=2) AND 
-        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE'");
+        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' 
+        ORDER BY jadwal_pasien.jam_booking ASC");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -147,7 +148,7 @@ class ExampleController extends Controller
     }
 
     public function getRiwayatWithPoliId(Request $request, $id){
-        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_poli='$id'");
+        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_poli='$id' ORDER BY jam_booking ASC");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -225,7 +226,10 @@ class ExampleController extends Controller
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE'");
+        WHERE jadwal_pasien.id_poli='$id' AND 
+        jadwal_pasien.status_antrean=4 AND 
+        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' 
+        ORDER BY jadwal_pasien.jam_booking ASC");
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -261,7 +265,10 @@ class ExampleController extends Controller
         FROM jadwal_pasien 
         LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
         LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND (jadwal_pasien.status_antrean=3 OR jadwal_pasien.status_antrean=5) AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE'");
+        WHERE jadwal_pasien.id_poli='$id' AND 
+        (jadwal_pasien.status_antrean=3 OR jadwal_pasien.status_antrean=5) AND 
+        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' 
+        ORDER BY jadwal_pasien.jam_booking ASC");
         if($result != null){
             return response()->json($result, 200);
         } else {
