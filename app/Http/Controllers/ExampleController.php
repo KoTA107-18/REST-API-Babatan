@@ -67,21 +67,45 @@ class ExampleController extends Controller
 
     // Antrean
     public function getEstimasi(Request $request){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+
         $id_poli = $request["id_poli"];
         $tgl_pelayanan = $request["tgl_pelayanan"];
         $jam_booking = $request["jam_booking"];
-        $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` 
+
+        $antreanDiatas = DB::select("SELECT * FROM `jadwal_pasien` 
         WHERE id_poli='$id_poli' AND 
         tgl_pelayanan='$tgl_pelayanan' AND 
         jam_booking < '$jam_booking' AND 
-        (status_antrean != 5 AND status_antrean !=3)");
+        (status_antrean = 1 OR status_antrean = 4)
+        ORDER BY jam_booking ASC");
+        
         $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` WHERE id_poli='$id_poli'");
         $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
 
-        $estimasi = count($resultAntrean) * $rataRata;
-        $jamBook = date("H:i", strtotime($jam_booking . ' + ' . $estimasi . ' minutes'));
+        $estimasiAntrean = 0;
+        $jam_booking_top = null;
+        if($antreanDiatas != null){
+            $estimasiAntrean = count($antreanDiatas) * $rataRata;
+            $jam_booking_top = $antreanDiatas[0]->jam_booking;
+        }
 
-        return response()->json($jamBook, 200);
+        if($jam_booking_top == null){
+            return response()->json($jam_booking, 200);
+        }
+
+        if(date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking_top))){
+            $jamEstimasiAkhir = date("H:i", strtotime($CURRENT_TIME . ' + ' . $estimasiAntrean . ' minutes'));
+            if(date("H:i", strtotime($jamEstimasiAkhir)) > date("H:i", strtotime($jam_booking))){
+                return response()->json($jamEstimasiAkhir, 200);
+            } else {
+                return response()->json($jam_booking, 200);
+            }
+        } else {
+            return response()->json($jam_booking, 200);
+        }
+
     }
 
     public function getAntreanInfo(){
