@@ -55,6 +55,10 @@ $router->get('/antrean/poliklinik/selesai/{id}','ExampleController@getAntreanSel
 $router->put('/antrean','ExampleController@editAntrean');
 // Insert Antrean.
 $router->post('/antrean','ExampleController@insertAntrean');
+// Insert Antrean Admin.
+$router->post('/antrean/admin/normal','ExampleController@insertAntreanNormal');
+// Insert Antrean Admin Gawat.
+$router->post('/antrean/admin/gawat','ExampleController@insertAntreanGawat');
 
 // --- Poliklinik ---
 // Get Poliklinik (Semua).

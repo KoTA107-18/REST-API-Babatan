@@ -365,7 +365,7 @@ class ExampleController extends Controller
 
             DB::insert("INSERT INTO riwayat_antrean VALUES(
                 0, '$id_poli', '$id_pasien', NULLIF('$nomor_antrean',''),
-                '$tipe_booking', '$tgl_pelayanan', '$jam_booking', '$waktu_daftar_antrean', 
+                '$tipe_booking', '$tgl_pelayanan', NULLIF('$jam_booking',''), '$waktu_daftar_antrean', 
                 NULLIF('$jam_mulai_dilayani',''),NULLIF('$jam_selesai_dilayani',''), '$status_antrean',
                 '$nama_poli', '$username', '$no_handphone',
                 '$kepala_keluarga', '$tgl_lahir', '$alamat',
@@ -414,6 +414,7 @@ class ExampleController extends Controller
             $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE'");
             $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
             $jamTutup = $resultInfoPoliklinik[0]->jam_tutup_booking;
+            $jamBuka = $resultInfoPoliklinik[0]->jam_buka_booking;
             $kuota = floor(60/$rataRata);
 
             
@@ -421,7 +422,7 @@ class ExampleController extends Controller
                 $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
             }
 
-            while (($status == false) AND ($jamIterator < $jamTutup)){
+            while (($status == false) AND ($jamIterator < $jamTutup) AND ($jamIterator >= $jamBuka)){
                 $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator' AND status_antrean!=5");
                 if($result == null){
                     $status = true;
@@ -499,7 +500,6 @@ class ExampleController extends Controller
                 return false;
             }
     }
-
 
     public function insertAntrean(Request $request){
         date_default_timezone_set("Asia/Jakarta");
@@ -582,6 +582,93 @@ class ExampleController extends Controller
             }
         }
         
+    }
+
+    public function insertAntreanNormal(Request $request){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
+
+        $tipe_booking       = 0;
+        $hari               = $request["hari"];
+        $id_poli            = $request["id_poli"];
+        $jenis_pasien       = $request["jenis_pasien"];
+
+        $nama_lengkap       = $request["nama_lengkap"];
+        $tgl_lahir          = $request["tgl_lahir"];
+        $alamat             = $request["alamat"];
+        $kepala_keluarga    = $request["kepala_keluarga"];
+        $no_handphone       = $request["no_handphone"];
+
+        DB::insert("INSERT INTO `pasien` VALUES (0, NULL, NULLIF('$no_handphone',''), NULLIF('$kepala_keluarga',''), NULLIF('$tgl_lahir',''), NULLIF('$alamat',''), NULLIF('$nama_lengkap',''), NULL, NULL, NULLIF('$jenis_pasien',''))");
+        $resultId = DB::select("SELECT LAST_INSERT_ID() AS id_pasien");
+        $id_pasien = $resultId[0]->id_pasien;
+
+        if($this->isPoliklinikAktif($id_poli)){
+            // Proses Antrean
+            if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien)){
+                $this->sortNumber($id_poli, $CURRENT_DATE);
+                return response()->json([
+                    'success'   => true,
+                    'message'   => 'Berhasil!',
+                    'data'      => ''
+                ], 200);
+            } else {
+                return response()->json([
+                    'success'   => true,
+                    'message'   => 'Kuota pada hari ini tidak tersedia!',
+                    'data'      => ''
+                ], 409);
+            }
+        } else {
+            // Jika Poliklinik tidak aktif.
+            // Tampilan pesan gagal. 
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Poliklinik tidak aktif!',
+                'data'      => ''
+            ], 409);
+        }
+        
+    }
+
+    public function insertAntreanGawat(Request $request){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME       = date("H:i", strtotime("now"));
+        $CURRENT_DATE       = date("Y-m-d", strtotime("now"));
+        $CURRENT_TIMEDATE   = date("Y-m-d H:i", strtotime("now"));
+        $jamIterator = date("H:i", strtotime(substr($CURRENT_TIME, 0, 2) . ':00'));
+
+        $hari               = $request["hari"];
+        $id_poli            = $request["id_poli"];
+        $jenis_pasien       = $request["jenis_pasien"];
+
+        $nama_lengkap       = $request["nama_lengkap"];
+        $tgl_lahir          = $request["tgl_lahir"];
+        $alamat             = $request["alamat"];
+        $kepala_keluarga    = $request["kepala_keluarga"];
+        $no_handphone       = $request["no_handphone"];
+
+        $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` JOIN `jadwal` ON poliklinik.id_poli=jadwal.id_poli WHERE poliklinik.id_poli='$id_poli' AND jadwal.hari='$hari'");
+        $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
+
+        while (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jamIterator))) {
+            $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
+        }
+
+        DB::insert("INSERT INTO `pasien` VALUES (0, NULL, NULLIF('$no_handphone',''), NULLIF('$kepala_keluarga',''), NULLIF('$tgl_lahir',''), NULLIF('$alamat',''), NULLIF('$nama_lengkap',''), NULL, NULL, NULLIF('$jenis_pasien',''))");
+        $resultId = DB::select("SELECT LAST_INSERT_ID() AS id_pasien");
+        $id_pasien = $resultId[0]->id_pasien;
+        DB::insert("INSERT INTO jadwal_pasien VALUES('$id_poli', '$hari', '$id_pasien', '0', '0', '$CURRENT_DATE', '$jamIterator', '$CURRENT_TIMEDATE', '$CURRENT_TIME', NULL, 2)");
+        $this->sortNumber($id_poli, $CURRENT_DATE);
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Berhasil!',
+            'data'      => ''
+        ], 200);
+
     }
 
     // Sort Nomor Antrean
