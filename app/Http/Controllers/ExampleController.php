@@ -317,61 +317,6 @@ class ExampleController extends Controller
         $id_pasien = $request["id_pasien"];
         $status_antrean = $request["status_antrean"];
 
-        $result = DB::select("SELECT
-        jadwal_pasien.nomor_antrean,
-        jadwal_pasien.tipe_booking,
-        jadwal_pasien.tgl_pelayanan,
-        jadwal_pasien.jam_booking,
-        jadwal_pasien.waktu_daftar_antrean,
-        jadwal_pasien.jam_mulai_dilayani,
-        jadwal_pasien.jam_selesai_dilayani,
-        jadwal_pasien.status_antrean,
-        jadwal_pasien.hari,
-        p.id_poli,
-        p.nama_poli,
-        pa.id_pasien,
-        pa.username,
-        pa.no_handphone,
-        pa.kepala_keluarga,
-        pa.nama_lengkap,
-        pa.alamat,
-        pa.tgl_lahir,
-        pa.jenis_pasien
-        FROM jadwal_pasien 
-        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id_poli' AND 
-        jadwal_pasien.tgl_pelayanan='$tgl_pelayanan' AND 
-        jadwal_pasien.id_pasien='$id_pasien'");
-        
-        // Jika status selesai / cancel. Langsung dipindah ke entitas Riwayat
-        if(($status_antrean == 5) || ($status_antrean == 3)){
-            // DB::delete("DELETE FROM jadwal_pasien WHERE id_poli='$id_poli' AND hari='$hari' AND id_pasien='$id_pasien'");
-            $nomor_antrean = $result[0]->nomor_antrean;
-            $tipe_booking = $result[0]->tipe_booking;
-            $tgl_pelayanan =$result[0]->tgl_pelayanan;
-            $jam_booking =$result[0]->jam_booking;
-            $waktu_daftar_antrean =$result[0]->waktu_daftar_antrean;
-            $jam_mulai_dilayani =$result[0]->jam_mulai_dilayani;
-            $jam_selesai_dilayani =$result[0]->jam_selesai_dilayani;
-            $nama_poli =$result[0]->nama_poli;
-            $username =$result[0]->username;
-            $no_handphone =$result[0]->no_handphone;
-            $kepala_keluarga =$result[0]->kepala_keluarga;
-            $tgl_lahir =$result[0]->tgl_lahir;
-            $alamat =$result[0]->alamat;
-            $nama_lengkap =$result[0]->nama_lengkap;
-            $jenis_pasien =$result[0]->jenis_pasien;
-
-            DB::insert("INSERT INTO riwayat_antrean VALUES(
-                0, '$id_poli', '$id_pasien', NULLIF('$nomor_antrean',''),
-                '$tipe_booking', '$tgl_pelayanan', NULLIF('$jam_booking',''), '$waktu_daftar_antrean', 
-                NULLIF('$jam_mulai_dilayani',''),NULLIF('$jam_selesai_dilayani',''), '$status_antrean',
-                '$nama_poli', '$username', '$no_handphone',
-                '$kepala_keluarga', '$tgl_lahir', '$alamat',
-                '$nama_lengkap', NULLIF('$jenis_pasien',''))");
-        }
-
         if($status_antrean == 2){
             DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_mulai_dilayani = '$CURRENT_TIME'
                 WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
@@ -381,6 +326,30 @@ class ExampleController extends Controller
         } else {
             DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
                 WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
+        }
+        
+        // Jika status selesai / cancel. Langsung dipindah ke entitas Riwayat
+        if(($status_antrean == 5) || ($status_antrean == 3)){
+            $result = DB::select("SELECT * FROM jadwal_pasien 
+                LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
+                LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
+                WHERE jadwal_pasien.id_poli='$id_poli' AND 
+                jadwal_pasien.tgl_pelayanan='$tgl_pelayanan' AND 
+                jadwal_pasien.id_pasien='$id_pasien'");
+                
+            $nomor_antrean = $result[0]->nomor_antrean;
+            $tipe_booking = $result[0]->tipe_booking;
+            $jam_booking =$result[0]->jam_booking;
+            $waktu_daftar_antrean =$result[0]->waktu_daftar_antrean;
+            $jam_mulai_dilayani =$result[0]->jam_mulai_dilayani;
+            $jam_selesai_dilayani =$result[0]->jam_selesai_dilayani;
+
+            DB::insert("INSERT INTO riwayat_antrean VALUES(
+                0, '$id_poli', '$id_pasien', NULLIF('$nomor_antrean',''),
+                '$tipe_booking', '$tgl_pelayanan', NULLIF('$jam_booking',''), '$waktu_daftar_antrean', 
+                NULLIF('$jam_mulai_dilayani',''),NULLIF('$jam_selesai_dilayani',''), '$status_antrean')");
+
+            DB::delete("DELETE FROM jadwal_pasien WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND id_pasien='$id_pasien'");
         }
         
     }
