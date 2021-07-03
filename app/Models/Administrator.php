@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Lumen\Auth\Authorizable;
 
-class Pasien extends Model implements AuthenticatableContract, AuthorizableContract
+class Administrator extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, Authorizable, HasFactory;
 
@@ -18,11 +18,11 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
      *
      * @var string
      */
-    protected $table = 'pasien';
+    protected $table = 'administrator';
 
     public $timestamps = false;
 
-    protected $primaryKey = 'id_pasien';
+    protected $primaryKey = 'username_admin';
 
     public $incrementing = false;
 
@@ -32,14 +32,7 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
      * @var array
      */
     protected $fillable = [
-        'username',
-        'no_handphone',
-        'api_token',
-        'password',
-        'kepala_keluarga',
-        'tgl_lahir',
-        'alamat',
-        'nama_lengkap',
+        'username_admin',
     ];
 
     /**
@@ -48,12 +41,6 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
      * @var array
      */
     protected $hidden = [
-        'api_token',
-        'password',
+        'password_admin',
     ];
-
-    public function jadwalPasien()
-    {
-        return $this->hasMany(JadwalPasien::class, 'id_pasien', 'id_pasien');
-    }
 }

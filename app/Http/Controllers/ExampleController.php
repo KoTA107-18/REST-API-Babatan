@@ -1,5 +1,10 @@
 <?php
 namespace App\Http\Controllers;
+use App\Models\Jadwal;
+use App\Models\JadwalPasien;
+use App\Models\Perawat;
+use App\Models\Poliklinik;
+use App\Models\RiwayatAntrean;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -67,39 +72,54 @@ class ExampleController extends Controller
 
     // Antrean
     public function getEstimasi(Request $request){
-        $id_poli = $request["id_poli"];
-        $tgl_pelayanan = $request["tgl_pelayanan"];
-        $jam_booking = $request["jam_booking"];
-        $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` 
-        WHERE id_poli='$id_poli' AND 
-        tgl_pelayanan='$tgl_pelayanan' AND 
-        jam_booking < '$jam_booking' AND 
-        (status_antrean != 5 AND status_antrean !=3)");
-        $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` WHERE id_poli='$id_poli'");
-        $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_TIME = date("H:i", strtotime("now"));
 
-        $estimasi = count($resultAntrean) * $rataRata;
-        $jamBook = date("H:i", strtotime($jam_booking . ' + ' . $estimasi . ' minutes'));
+        $id_poli        = $request->input('id_poli');
+        $tgl_pelayanan  = $request->input('tgl_pelayanan');
+        $jam_booking    = $request->input('jam_booking');
 
-        return response()->json($jamBook, 200);
+        $antreanDiatas  = JadwalPasien::find($id_poli)->where([
+            ['tgl_pelayanan'    , '='   , $tgl_pelayanan],
+            ['jam_booking'      , '<'   , $jam_booking]
+        ])->where( function($q) {
+            $q->where('status_antrean'  , '='  , 1)
+              ->orWhere('status_antrean', '='  , 4);
+        })->get();
+
+        $resultInfoPoliklinik = Poliklinik::find($id_poli);
+        $rataRata = $resultInfoPoliklinik->rerata_waktu_pelayanan;
+
+        $estimasiAntrean = 0;
+        $jam_booking_top = null;
+        if(count($antreanDiatas) != 0){
+            $estimasiAntrean = count($antreanDiatas) * $rataRata;
+            $jam_booking_top = $antreanDiatas[0]->jam_booking;
+        }
+
+        if($jam_booking_top == null){
+            return response()->json($jam_booking, 200);
+        }
+
+        if(date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking_top))){
+            $jamEstimasiAkhir = date("H:i", strtotime($CURRENT_TIME . ' + ' . $estimasiAntrean . ' minutes'));
+            if(date("H:i", strtotime($jamEstimasiAkhir)) > date("H:i", strtotime($jam_booking))){
+                return response()->json($jamEstimasiAkhir, 200);
+            } else {
+                return response()->json($jam_booking, 200);
+            }
+        } else {
+            return response()->json($jam_booking, 200);
+        }
     }
 
     public function getAntreanInfo(){
         date_default_timezone_set("Asia/Jakarta");
-        $CURRENT_TIME = date("H:i", strtotime("now"));
-        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
-        $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
 
-        $resultPoli = DB::select("SELECT 
-        COUNT(case when jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' then 1 else null end) AS 'total_antrean',
-        COUNT(case when (jadwal_pasien.status_antrean=4 AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE')  then 1 else null end) AS 'antrean_sementara', 
-        MAX(case when (jadwal_pasien.status_antrean=2 AND jadwal_pasien.tgl_pelayanan='$CURRENT_DATE') then jadwal_pasien.nomor_antrean else 0 end) AS 'nomor_antrean',
-        poliklinik.id_poli,
-        poliklinik.status_poli, 
-        poliklinik.nama_poli
-            FROM poliklinik LEFT JOIN jadwal_pasien ON poliklinik.id_poli=jadwal_pasien.id_poli
-            GROUP BY poliklinik.id_poli
-            ORDER BY poliklinik.id_poli ASC;");
+        $resultPoli = Poliklinik::with('totalAntrean', 'antreanSementara', 'nomorAntrean')
+                                ->selectRaw('id_poli, nama_poli, status_poli')
+                                ->orderBy('id_poli', 'asc')
+                                ->get();
 
         if($resultPoli != null){
             return response()->json($resultPoli, 200);
@@ -113,33 +133,16 @@ class ExampleController extends Controller
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
         $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
-        $result = DB::select("SELECT
-            jadwal_pasien.nomor_antrean,
-            jadwal_pasien.tipe_booking,
-            jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_booking,
-            jadwal_pasien.waktu_daftar_antrean,
-            jadwal_pasien.jam_mulai_dilayani,
-            jadwal_pasien.jam_selesai_dilayani,
-            jadwal_pasien.status_antrean,
-            jadwal_pasien.hari,
-            p.id_poli,
-            p.nama_poli,
-            pa.id_pasien,
-            pa.username,
-            pa.no_handphone,
-            pa.kepala_keluarga,
-            pa.nama_lengkap,
-            pa.alamat,
-            pa.tgl_lahir,
-            pa.jenis_pasien
-        FROM jadwal_pasien 
-        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND 
-        (jadwal_pasien.status_antrean=1 OR jadwal_pasien.status_antrean=2) AND 
-        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' 
-        ORDER BY jadwal_pasien.jam_booking ASC");
+
+        $result = JadwalPasien::with('pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien', 'poliklinik:id_poli,nama_poli')
+            ->where( function($q) {
+               $q->where('status_antrean', '=', 1)
+                 ->orWhere('status_antrean', '=', 2);})
+            ->where('tgl_pelayanan', '=', $CURRENT_DATE)
+            ->where('id_poli', '=', $id)
+            ->selectRaw('id_poli, id_pasien, nomor_antrean, tipe_booking, tgl_pelayanan, jam_booking, waktu_daftar_antrean, jam_mulai_dilayani, jam_selesai_dilayani, status_antrean, hari')
+            ->orderBy('jam_booking', 'asc')->get();
+
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -148,7 +151,7 @@ class ExampleController extends Controller
     }
 
     public function getRiwayatWithPoliId(Request $request, $id){
-        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_poli='$id' ORDER BY jam_booking ASC");
+        $result = RiwayatAntrean::where('id_poli', '=', $id)->orderBy('jam_booking', 'asc')->get();
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -157,7 +160,7 @@ class ExampleController extends Controller
     }
 
     public function getRiwayatWithPasienId(Request $request, $id){
-        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_pasien='$id'");
+        $result = RiwayatAntrean::where('id_pasien', '=', $id)->get();
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -166,31 +169,13 @@ class ExampleController extends Controller
     }
 
     public function getAntreanWithPasienId(Request $request, $id){
-        $result = DB::select("SELECT
-            jadwal_pasien.nomor_antrean,
-            jadwal_pasien.tipe_booking,
-            jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_booking,
-            jadwal_pasien.waktu_daftar_antrean,
-            jadwal_pasien.jam_mulai_dilayani,
-            jadwal_pasien.jam_selesai_dilayani,
-            jadwal_pasien.status_antrean,
-            jadwal_pasien.hari,
-            p.id_poli,
-            p.nama_poli,
-            pa.id_pasien,
-            pa.username,
-            pa.no_handphone,
-            pa.kepala_keluarga,
-            pa.nama_lengkap,
-            pa.alamat,
-            pa.tgl_lahir,
-            pa.jenis_pasien
-        FROM jadwal_pasien 
-        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_pasien='$id' AND 
-        (jadwal_pasien.status_antrean!=3 AND jadwal_pasien.status_antrean!=5)");
+        $result = JadwalPasien::with('pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien', 'poliklinik:id_poli,nama_poli')
+            ->where('status_antrean', '!=', 3)
+            ->where('status_antrean', '!=', 5)
+            ->where('id_pasien', '=', $id)
+            ->selectRaw('id_poli, id_pasien, nomor_antrean, tipe_booking, tgl_pelayanan, jam_booking, waktu_daftar_antrean, jam_mulai_dilayani, jam_selesai_dilayani, status_antrean, hari')
+            ->get();
+
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -203,33 +188,14 @@ class ExampleController extends Controller
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
         $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
-        $result = DB::select("SELECT
-            jadwal_pasien.nomor_antrean,
-            jadwal_pasien.tipe_booking,
-            jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_booking,
-            jadwal_pasien.waktu_daftar_antrean,
-            jadwal_pasien.jam_mulai_dilayani,
-            jadwal_pasien.jam_selesai_dilayani,
-            jadwal_pasien.status_antrean,
-            jadwal_pasien.hari,
-            p.id_poli,
-            p.nama_poli,
-            pa.id_pasien,
-            pa.username,
-            pa.no_handphone,
-            pa.kepala_keluarga,
-            pa.nama_lengkap,
-            pa.alamat,
-            pa.tgl_lahir,
-            pa.jenis_pasien
-        FROM jadwal_pasien 
-        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND 
-        jadwal_pasien.status_antrean=4 AND 
-        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' 
-        ORDER BY jadwal_pasien.jam_booking ASC");
+
+        $result = JadwalPasien::with('pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien', 'poliklinik:id_poli,nama_poli')
+            ->where('status_antrean', '=', 4)
+            ->where('tgl_pelayanan', '=', $CURRENT_DATE)
+            ->where('id_poli', '=', $id)
+            ->selectRaw('id_poli, id_pasien, nomor_antrean, tipe_booking, tgl_pelayanan, jam_booking, waktu_daftar_antrean, jam_mulai_dilayani, jam_selesai_dilayani, status_antrean, hari')
+            ->orderBy('jam_booking', 'asc')->get();
+
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -242,33 +208,16 @@ class ExampleController extends Controller
         $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
         $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
-        $result = DB::select("SELECT
-            jadwal_pasien.nomor_antrean,
-            jadwal_pasien.tipe_booking,
-            jadwal_pasien.tgl_pelayanan,
-            jadwal_pasien.jam_booking,
-            jadwal_pasien.waktu_daftar_antrean,
-            jadwal_pasien.jam_mulai_dilayani,
-            jadwal_pasien.jam_selesai_dilayani,
-            jadwal_pasien.status_antrean,
-            jadwal_pasien.hari,
-            p.id_poli,
-            p.nama_poli,
-            pa.id_pasien,
-            pa.username,
-            pa.no_handphone,
-            pa.kepala_keluarga,
-            pa.nama_lengkap,
-            pa.alamat,
-            pa.tgl_lahir,
-            pa.jenis_pasien
-        FROM jadwal_pasien 
-        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id' AND 
-        (jadwal_pasien.status_antrean=3 OR jadwal_pasien.status_antrean=5) AND 
-        jadwal_pasien.tgl_pelayanan='$CURRENT_DATE' 
-        ORDER BY jadwal_pasien.jam_booking ASC");
+
+        $result = JadwalPasien::with('pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien', 'poliklinik:id_poli,nama_poli')
+            ->where( function($q) {
+                $q->where('status_antrean', '=', 3)
+                    ->orWhere('status_antrean', '=', 5);})
+            ->where('tgl_pelayanan', '=', $CURRENT_DATE)
+            ->where('id_poli', '=', $id)
+            ->selectRaw('id_poli, id_pasien, nomor_antrean, tipe_booking, tgl_pelayanan, jam_booking, waktu_daftar_antrean, jam_mulai_dilayani, jam_selesai_dilayani, status_antrean, hari')
+            ->orderBy('jam_booking', 'asc')->get();
+
         if($result != null){
             return response()->json($result, 200);
         } else {
@@ -284,7 +233,6 @@ class ExampleController extends Controller
         DILEWATI = 4;
         DIBATALKAN = 5; */
         date_default_timezone_set("Asia/Jakarta");
-        $CURRENT_TIME = date("H:i", strtotime("now"));
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
         $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
 
@@ -293,113 +241,114 @@ class ExampleController extends Controller
         $id_pasien = $request["id_pasien"];
         $status_antrean = $request["status_antrean"];
 
-        $result = DB::select("SELECT
-        jadwal_pasien.nomor_antrean,
-        jadwal_pasien.tipe_booking,
-        jadwal_pasien.tgl_pelayanan,
-        jadwal_pasien.jam_booking,
-        jadwal_pasien.waktu_daftar_antrean,
-        jadwal_pasien.jam_mulai_dilayani,
-        jadwal_pasien.jam_selesai_dilayani,
-        jadwal_pasien.status_antrean,
-        jadwal_pasien.hari,
-        p.id_poli,
-        p.nama_poli,
-        pa.id_pasien,
-        pa.username,
-        pa.no_handphone,
-        pa.kepala_keluarga,
-        pa.nama_lengkap,
-        pa.alamat,
-        pa.tgl_lahir,
-        pa.jenis_pasien
-        FROM jadwal_pasien 
-        LEFT JOIN pasien pa ON jadwal_pasien.id_pasien=pa.id_pasien
-        LEFT JOIN poliklinik p ON jadwal_pasien.id_poli=p.id_poli 
-        WHERE jadwal_pasien.id_poli='$id_poli' AND 
-        jadwal_pasien.tgl_pelayanan='$tgl_pelayanan' AND 
-        jadwal_pasien.id_pasien='$id_pasien'");
-        
+        $result = JadwalPasien::with('pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien', 'poliklinik:id_poli,nama_poli')
+            ->where('tgl_pelayanan', '=', $tgl_pelayanan)
+            ->where('id_poli', '=', $id_poli)
+            ->where('id_pasien', '=', $id_pasien)
+            ->selectRaw('id_poli, id_pasien, nomor_antrean, tipe_booking, tgl_pelayanan, jam_booking, waktu_daftar_antrean, jam_mulai_dilayani, jam_selesai_dilayani, status_antrean, hari')
+            ->orderBy('jam_booking', 'asc')->get();
+
         // Jika status selesai / cancel. Langsung dipindah ke entitas Riwayat
         if(($status_antrean == 5) || ($status_antrean == 3)){
             // DB::delete("DELETE FROM jadwal_pasien WHERE id_poli='$id_poli' AND hari='$hari' AND id_pasien='$id_pasien'");
-            $nomor_antrean = $result[0]->nomor_antrean;
-            $tipe_booking = $result[0]->tipe_booking;
-            $tgl_pelayanan =$result[0]->tgl_pelayanan;
-            $jam_booking =$result[0]->jam_booking;
-            $waktu_daftar_antrean =$result[0]->waktu_daftar_antrean;
-            $jam_mulai_dilayani =$result[0]->jam_mulai_dilayani;
-            $jam_selesai_dilayani =$result[0]->jam_selesai_dilayani;
-            $nama_poli =$result[0]->nama_poli;
-            $username =$result[0]->username;
-            $no_handphone =$result[0]->no_handphone;
-            $kepala_keluarga =$result[0]->kepala_keluarga;
-            $tgl_lahir =$result[0]->tgl_lahir;
-            $alamat =$result[0]->alamat;
-            $nama_lengkap =$result[0]->nama_lengkap;
-            $jenis_pasien =$result[0]->jenis_pasien;
+            $data = [
+                'id_poli'               => $id_poli,
+                'id_pasien'             => $id_pasien,
+                'nomor_antrean'         => $result[0]->nomor_antrean,
+                'tipe_booking'          => $result[0]->tipe_booking,
+                'tgl_pelayanan'         => $result[0]->tgl_pelayanan,
+                'jam_booking'           => $result[0]->jam_booking,
+                'waktu_daftar_antrean'  => $result[0]->waktu_daftar_antrean,
+                'jam_mulai_dilayani'    => $result[0]->jam_mulai_dilayani,
+                'jam_selesai_dilayani'  => $result[0]->jam_selesai_dilayani,
+                'status_antrean'        => $status_antrean,
+                'nama_poli'             => $result[0]->poliklinik->nama_poli,
+                'username'              => $result[0]->pasien->username,
+                'no_handphone'          => $result[0]->pasien->no_handphone,
+                'kepala_keluarga'       => $result[0]->pasien->kepala_keluarga,
+                'tgl_lahir'             => $result[0]->pasien->tgl_lahir,
+                'alamat'                => $result[0]->pasien->alamat,
+                'nama_lengkap'          => $result[0]->pasien->nama_lengkap,
+                'jenis_pasien'          => $result[0]->pasien->jenis_pasien,
+            ];
 
-            DB::insert("INSERT INTO riwayat_antrean VALUES(
-                0, '$id_poli', '$id_pasien', NULLIF('$nomor_antrean',''),
-                '$tipe_booking', '$tgl_pelayanan', '$jam_booking', '$waktu_daftar_antrean', 
-                NULLIF('$jam_mulai_dilayani',''),NULLIF('$jam_selesai_dilayani',''), '$status_antrean',
-                '$nama_poli', '$username', '$no_handphone',
-                '$kepala_keluarga', '$tgl_lahir', '$alamat',
-                '$nama_lengkap', NULLIF('$jenis_pasien',''))");
+            RiwayatAntrean::create($data);
         }
 
+        $CURRENT_TIME = date("H:i", strtotime("now"));
         if($status_antrean == 2){
-            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_mulai_dilayani = '$CURRENT_TIME'
-                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
+            JadwalPasien::where('tgl_pelayanan', '=', $tgl_pelayanan)
+                        ->where('id_poli', '=', $id_poli)
+                        ->where('id_pasien', '=', $id_pasien)
+                        ->update(['status_antrean' => $status_antrean, 'jam_mulai_dilayani' => $CURRENT_TIME]);
         } else if($status_antrean == 3){
-            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean', jam_selesai_dilayani = '$CURRENT_TIME'
-                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
+            JadwalPasien::where('tgl_pelayanan', '=', $tgl_pelayanan)
+                        ->where('id_poli', '=', $id_poli)
+                        ->where('id_pasien', '=', $id_pasien)
+                        ->update(['status_antrean' => $status_antrean, 'jam_selesai_dilayani' => $CURRENT_TIME]);
         } else {
-            DB::update("UPDATE jadwal_pasien SET status_antrean = '$status_antrean'
-                WHERE id_poli = '$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND id_pasien = '$id_pasien'");
+            JadwalPasien::where('tgl_pelayanan', '=', $tgl_pelayanan)
+                        ->where('id_poli', '=', $id_poli)
+                        ->where('id_pasien', '=', $id_pasien)
+                        ->update(['status_antrean' => $status_antrean]);
         }
-        
+
     }
 
     // Kebutuhan Insert Bukan Booking
 
-    private function isAmbilAntrean(int $id_pasien){
-        $resultCheckRegist = DB::select("SELECT * FROM `jadwal_pasien` 
-        WHERE id_pasien = '$id_pasien' AND (status_antrean!=3 AND status_antrean!=5)");
+    private function isAmbilAntrean(int $id_pasien): bool
+    {
+        $resultCheckRegist = JadwalPasien::where('id_pasien', '=', $id_pasien)
+                                         ->where('status_antrean', '!=', 3)
+                                         ->where('status_antrean', '!=', 5)
+                                         ->get();
+
         return ($resultCheckRegist != null);
     }
 
-    private function isPoliklinikAktif(int $id_poli){
-        $resultCheckRegist = DB::select("SELECT * FROM `poliklinik` 
-        WHERE id_poli = '$id_poli' AND status_poli = 1");
+    private function isPoliklinikAktif(int $id_poli): bool
+    {
+        $resultCheckRegist = Poliklinik::where('id_poli', '=', $id_poli)
+                                       ->where('status_poli', '=', 1)
+                                       ->get();
+
         return ($resultCheckRegist != null);
     }
 
     private function kuotaNonBooking(
         string $hari,
-        int $id_poli, 
+        int $id_poli,
         int $id_pasien,
-        int $jenis_pasien){
+        int $jenis_pasien): bool
+    {
             date_default_timezone_set("Asia/Jakarta");
             $status = false;
             $CURRENT_DATE = date("Y-m-d", strtotime("now"));
             $CURRENT_TIME = date("H:i", strtotime("now"));
             $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
             $jamIterator = date("H:i", strtotime(substr($CURRENT_TIME, 0, 2) . ':00'));
-            $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` JOIN `jadwal` ON poliklinik.id_poli=jadwal.id_poli WHERE poliklinik.id_poli='$id_poli' AND jadwal.hari='$hari'");
-            $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE'");
+            $resultInfoPoliklinik = Poliklinik::with(['jadwal' => function($q) use ($id_poli, $hari) {
+                                                    $q->where('hari', '=', $hari);
+                                                }])->where('id_poli', '=', $id_poli)->get();
+            $resultAntrean = JadwalPasien::where('id_poli', '=', $id_poli)->where('tgl_pelayanan', '=', $CURRENT_DATE)->get();
             $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
-            $jamTutup = $resultInfoPoliklinik[0]->jam_tutup_booking;
+            $jamTutup = $resultInfoPoliklinik[0]->jadwal->jam_tutup_booking;
             $kuota = floor(60/$rataRata);
 
-            
+
             while (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jamIterator))) {
                 $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
             }
 
             while (($status == false) AND ($jamIterator < $jamTutup)){
-                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator' AND status_antrean!=5");
-                if($result == null){
+                $result = JadwalPasien::where('id_poli', '=', $id_poli)
+                                      ->where('tgl_pelayanan', '=', $CURRENT_DATE)
+                                      ->where('jam_booking', '=', $jamIterator)
+                                      ->where('status_antrean', '!=', 5)
+                                      ->get();
+
+                if(!$result->isEmpty()){
                     $status = true;
                 }
                 if($status != true){
@@ -408,34 +357,108 @@ class ExampleController extends Controller
             }
 
             if($status){
-                DB::insert("INSERT INTO jadwal_pasien VALUES(
-                    '$id_poli', '$hari', '$id_pasien',
-                    '0', '0', '$CURRENT_DATE', '$jamIterator', '$CURRENT_TIMEDATE',
-                    NULL, NULL, 1)");
+                $data = [
+                    'id_poli'               => $id_poli,
+                    'hari'                  => $hari,
+                    'id_pasien'             => $id_pasien,
+                    'nomor_antrean'         => 0,
+                    'tipe_booking'          => 0,
+                    'tgl_pelayanan'         => $CURRENT_DATE,
+                    'jam_booking'           => $jamIterator,
+                    'waktu_daftar_antrean'  => $CURRENT_TIMEDATE,
+                    'jam_mulai_dilayani'    => NULL,
+                    'jam_selesai_dilayani'  => NULL,
+                    'status_antrean'        => 1,
+                ];
+                JadwalPasien::create($data);
                 return true;
             } else {
                 return false;
             }
-
-            
-
-            
-
     }
 
     // Kebutuhan Insert Booking
     private function isJadwalTersedia(string $id_poli, string $hari, string $jam_booking){
-        $resultCheckRegist = DB::select("SELECT * FROM `poliklinik` 
-        JOIN jadwal ON poliklinik.id_poli=jadwal.id_poli 
-        WHERE poliklinik.id_poli = '$id_poli' AND 
-        jadwal.hari = '$hari' AND 
-        ('$jam_booking' >= jadwal.jam_buka_booking AND '$jam_booking' <= jadwal.jam_tutup_booking)");
-        return ($resultCheckRegist != null);
+        $resultCheckRegist = Poliklinik::with([
+                                'jadwal' => function($q) use ($hari, $jam_booking){
+                                    $q->where('hari', '=', $hari)
+                                      ->where('jam_buka_booking', '<=', $jam_booking)
+                                      ->where('jam_tutup_booking', '>=', $jam_booking);
+                                }
+                            ])->where('id_poli', '=', $id_poli)->get();
+
+        return (!$resultCheckRegist->isEmpty());
+    }
+
+    public function testElo(Request $request){
+//        return response()->json(
+//            Poliklinik::with('jadwalPasien')->where( 'id_poli',1)->where(function($query){
+//                $query->where('id_poli', '<=', 4)
+//                    ->orWhere('id_poli', '>', 4);
+//            })->count('id_poli'),
+//            200
+//        );
+//        return response()->json(
+//            Poliklinik::with('totalAntrean', 'antreanSementara', 'nomorAntrean')->selectRaw('id_poli, nama_poli, status_poli')->get(),
+//            200
+//        );
+//        $result = JadwalPasien::with('pasien:id_pasien,tgl_lahir', 'jadwal')->where( 'id_poli',1)->get();
+        $id_poli = 1;
+        $hari = 'RB';
+        $tgl_pelayanan = '2021-06-23';
+        $jam_booking = '08:00:00';
+        $jamBookingIterator = $jam_booking;
+        $jam = substr($jamBookingIterator, 0, 2) . '%';
+        $result = JadwalPasien::where('id_poli', '=', $id_poli)->where('tgl_pelayanan', '=', $tgl_pelayanan)->where('jam_booking', 'LIKE', $jam)->get();
+        return response()->json(
+            $result,
+            200
+        );
+        $id_pasien = 9;
+        $status_antrean = 2;
+
+//        $result = JadwalPasien::with('pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien', 'poliklinik:id_poli,nama_poli')
+//            ->where('tgl_pelayanan', '=', $tgl_pelayanan)
+//            ->where('id_poli', '=', $id_poli)
+//            ->where('id_pasien', '=', $id_pasien)
+//            ->selectRaw('id_poli, id_pasien, nomor_antrean, tipe_booking, tgl_pelayanan, jam_booking, waktu_daftar_antrean, jam_mulai_dilayani, jam_selesai_dilayani, status_antrean, hari')
+//            ->orderBy('jam_booking', 'asc')->get();
+
+//        JadwalPasien::where('tgl_pelayanan', '=', $tgl_pelayanan)
+//            ->where('id_poli', '=', $id_poli)
+//            ->where('id_pasien', '=', $id_pasien)
+//            ->update(['status_antrean' => $status_antrean, 'jam_mulai_dilayani' => '15:21:00']);
+        // Jika status selesai / cancel. Langsung dipindah ke entitas Riwayat
+//        if(true){
+//            // DB::delete("DELETE FROM jadwal_pasien WHERE id_poli='$id_poli' AND hari='$hari' AND id_pasien='$id_pasien'");
+//            $data = [
+//                'id_poli'               => $id_poli,
+//                'id_pasien'             => $id_pasien,
+//                'nomor_antrean'         => $result[0]->nomor_antrean,
+//                'tipe_booking'          => $result[0]->tipe_booking,
+//                'tgl_pelayanan'         => $result[0]->tgl_pelayanan,
+//                'jam_booking'           => $result[0]->jam_booking,
+//                'waktu_daftar_antrean'  => $result[0]->waktu_daftar_antrean,
+//                'jam_mulai_dilayani'    => $result[0]->jam_mulai_dilayani,
+//                'jam_selesai_dilayani'  => $result[0]->jam_selesai_dilayani,
+//                'status_antrean'        => $status_antrean,
+//                'nama_poli'             => $result[0]->poliklinik->nama_poli,
+//                'username'              => $result[0]->pasien->username,
+//                'no_handphone'          => $result[0]->pasien->no_handphone,
+//                'kepala_keluarga'       => $result[0]->pasien->kepala_keluarga,
+//                'tgl_lahir'             => $result[0]->pasien->tgl_lahir,
+//                'alamat'                => $result[0]->pasien->alamat,
+//                'nama_lengkap'          => $result[0]->pasien->nama_lengkap,
+//                'jenis_pasien'          => $result[0]->pasien->jenis_pasien,
+//            ];
+//
+//            RiwayatAntrean::create($data);
+//        }
     }
 
     private function kuotaBooking(
         string $hari,
-        int $id_poli, 
+        int $id_poli,
         int $id_pasien,
         int $jenis_pasien,
         string $tgl_pelayanan,
@@ -445,19 +468,25 @@ class ExampleController extends Controller
             $CURRENT_TIMEDATE = date("Y-m-d H:i:s", strtotime("now"));
             $jamBookingIterator = $jam_booking;
             $jam = substr($jamBookingIterator, 0, 2) . '%';
-            $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` WHERE id_poli='$id_poli'");
-            $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND jam_booking LIKE '$jam'");
+            $resultInfoPoliklinik = Poliklinik::where('id_poli', '=', $id_poli)->get();
+            $resultAntrean = JadwalPasien::where('id_poli', '=', $id_poli)->where('tgl_pelayanan', '=', $tgl_pelayanan)->where('jam_booking', 'LIKE', $jam)->get();
             $antrean = 0;
-            if($resultAntrean != null){
+            if(!$resultAntrean->isEmpty()){
                 $antrean = count($resultAntrean);
             }
             $status = false;
             $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
             $kuota = floor(60/$rataRata);
-            
+
             while (($status == false) && (substr($jamBookingIterator, 0, 2) == substr($jam_booking, 0, 2)) ) {
-                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' AND jam_booking='$jamBookingIterator' AND status_antrean!=5");
-                if($result == null){
+                $result = JadwalPasien::where([
+                    ['id_poli', '=', $id_poli],
+                    ['tgl_pelayanan', '=', $tgl_pelayanan],
+                    ['jam_booking', '=', $jamBookingIterator],
+                    ['status_antrean', '!=', 5]
+                ])->get();
+
+                if($result->isEmpty()){
                     $status = true;
                 }
                 if($status != true){
@@ -466,10 +495,21 @@ class ExampleController extends Controller
             }
 
             if($status){
-                DB::insert("INSERT INTO jadwal_pasien VALUES(
-                    '$id_poli', '$hari', '$id_pasien',
-                    '0', '1', '$tgl_pelayanan', '$jamBookingIterator', '$CURRENT_TIMEDATE',
-                    NULL, NULL, 1)");
+                $data = [
+                    'id_poli'               => $id_poli,
+                    'hari'                  => $hari,
+                    'id_pasien'             => $id_pasien,
+                    'nomor_antrean'         => 0,
+                    'tipe_booking'          => 1,
+                    'tgl_pelayanan'         => $tgl_pelayanan,
+                    'jam_booking'           => $jamBookingIterator,
+                    'waktu_daftar_antrean'  => $CURRENT_TIMEDATE,
+                    'jam_mulai_dilayani'    => NULL,
+                    'jam_selesai_dilayani'  => NULL,
+                    'status_antrean'        => 1,
+                ];
+                JadwalPasien::create($data);
+
                 return true;
             } else {
                 return false;
@@ -488,7 +528,7 @@ class ExampleController extends Controller
         $id_pasien = $request["id_pasien"];
         $tipe_booking = $request["tipe_booking"];
         $jenis_pasien = $request["jenis_pasien"];
-        
+
         // Jika sudah mengambil Antrean
         if($this->isAmbilAntrean($id_pasien) == true){
             return response()->json([
@@ -519,7 +559,7 @@ class ExampleController extends Controller
                 }
             } else {
                 // Jika Poliklinik tidak aktif.
-                // Tampilan pesan gagal. 
+                // Tampilan pesan gagal.
                 return response()->json([
                     'success'   => false,
                     'message'   => 'Poliklinik tidak aktif!',
@@ -557,27 +597,28 @@ class ExampleController extends Controller
                 ], 409);
             }
         }
-        
+
     }
 
     // Sort Nomor Antrean
 
     private function sortNumber(int $id_poli, string $tgl_pelayanan){
-        $result = DB::select("SELECT * FROM jadwal_pasien 
-        WHERE id_poli='$id_poli' AND tgl_pelayanan='$tgl_pelayanan' 
-        ORDER BY jam_booking ASC, waktu_daftar_antrean ASC");
+        $result = JadwalPasien::where([
+            ['id_poli', '=', $id_poli],
+            ['tgl_pelayanan', '=' , $tgl_pelayanan],
+        ])->orderBy('jam_booking', 'asc')->orderBy('waktu_daftar_antrean', 'asc')->get();
 
         $i = 0;
         while ($i < count($result)) {
             $nomor = $i+1;
             $waktu_daftar_antrean = $result[$i]->waktu_daftar_antrean;
             $idPasien = $result[$i]->id_pasien;
-            DB::update("UPDATE jadwal_pasien SET nomor_antrean='$nomor' 
-            WHERE 
-            id_poli='$id_poli' AND 
-            id_pasien='$idPasien' AND 
-            waktu_daftar_antrean='$waktu_daftar_antrean' AND
-            tgl_pelayanan='$tgl_pelayanan'");
+
+            JadwalPasien::where('id_poli', '=', $id_poli)
+                ->where('id_pasien', '=', $idPasien)
+                ->where('waktu_daftar_antrean', '=', $waktu_daftar_antrean)
+                ->where('tgl_pelayanan', '=', $tgl_pelayanan)
+                ->update(['nomor_antrean' => $nomor]);
             $i++;
         }
 
@@ -587,13 +628,13 @@ class ExampleController extends Controller
     // Poliklinik
     public function getAllPoliklinik(){
         $result = [];
-        $resultPoli = DB::select("SELECT * FROM poliklinik");
+        $resultPoli = Poliklinik::all();
 
         $i = 0;
         foreach ($resultPoli as $row) {
             $result[$i] = $row;
             $idPoli = $row->id_poli;
-            $resultJadwal = DB::select("SELECT * FROM jadwal WHERE id_poli='$idPoli'");
+            $resultJadwal = Jadwal::where('id_poli', '=', $idPoli)->get();
             $result[$i]->jadwal = $resultJadwal;
             $i++;
         }
@@ -607,13 +648,13 @@ class ExampleController extends Controller
 
     public function getPoliklinik($id){
         $result = [];
-        $resultPoli = DB::select("SELECT * FROM poliklinik WHERE id_poli='$id'");
+        $resultPoli = Poliklinik::where('id_poli', '=', $id)->get();
 
         $i = 0;
         foreach ($resultPoli as $row) {
             $result[$i] = $row;
             $idPoli = $row->id_poli;
-            $resultJadwal = DB::select("SELECT * FROM jadwal WHERE id_poli='$idPoli'");
+            $resultJadwal = Jadwal::where('id_poli', '=', $idPoli)->get();
             $result[$i]->jadwal = $resultJadwal;
             $i++;
         }
@@ -636,37 +677,50 @@ class ExampleController extends Controller
             $hari = $jadwalPerHari["hari"];
             $jam_buka_booking = $jadwalPerHari["jam_buka_booking"];
             $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
-            DB::insert("INSERT INTO jadwal SET 
-                hari='$hari', 
-                jam_buka_booking='$jam_buka_booking', 
-                jam_tutup_booking='$jam_tutup_booking',
-                id_poli = (SELECT id_poli FROM poliklinik WHERE nama_poli='$nama_poli' LIMIT 1)");
+            $id_poli = Poliklinik::select('id_poli')->where('nama_poli', '=', $nama_poli)->get();
+
+            $data = [
+                'hari'              => $hari,
+                'jam_buka_booking'  => $jam_buka_booking,
+                'jam_tutup_booking' => $jam_tutup_booking,
+                'id_poli'           => $id_poli,
+            ];
+
+            Jadwal::create($data);
         }
     }
 
     public function ubahPoliklinik(Request $request, $id){
-        $id_poli = $id;
-        $nama_poli = $request["nama_poli"];
-        $desc_poli = $request["desc_poli"];
-        $status_poli = $request["status_poli"];
-        $rerata = $request["rerata_waktu_pelayanan"];
+        $id_poli        = $id;
+        $nama_poli      = $request["nama_poli"];
+        $desc_poli      = $request["desc_poli"];
+        $status_poli    = $request["status_poli"];
+        $rerata         = $request["rerata_waktu_pelayanan"];
 
-        DB::update("UPDATE poliklinik SET nama_poli = '$nama_poli',
-        desc_poli = '$desc_poli', status_poli = '$status_poli',
-        rerata_waktu_pelayanan = '$rerata' WHERE id_poli = '$id_poli'");
+        Poliklinik::where('id_poli', '=', $id_poli)
+            ->update([
+                'nama_poli'                 => $nama_poli,
+                'desc_poli'                 => $desc_poli,
+                'status_poli'               => $status_poli,
+                'rerata_waktu_pelayanan'    => $rerata,
+            ]);
 
-        DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
+        Jadwal::where('id_poli', '=', $id_poli)->delete();
 
         $jadwal = $request["jadwal"];
         foreach ($jadwal as $jadwalPerHari) {
             $hari = $jadwalPerHari["hari"];
             $jam_buka_booking = $jadwalPerHari["jam_buka_booking"];
             $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
-            DB::insert("INSERT INTO jadwal SET 
-                hari='$hari', 
-                jam_buka_booking='$jam_buka_booking', 
-                jam_tutup_booking='$jam_tutup_booking',
-                id_poli = '$id_poli'");
+
+            $data = [
+                'hari'              => $hari,
+                'jam_buka_booking'  => $jam_buka_booking,
+                'jam_tutup_booking' => $jam_tutup_booking,
+                'id_poli'           => $id_poli,
+            ];
+
+            Jadwal::create($data);
         }
     }
 
@@ -675,11 +729,9 @@ class ExampleController extends Controller
         while($request[$i] != null){
             $id = $request[$i]["id_poli"];
             $status = $request[$i]["status_poli"];
-            DB::update("UPDATE poliklinik SET status_poli = '$status' WHERE id_poli = '$id'");
+            Poliklinik::where('id_poli', '=', $id)->update(['status_poli' => $status]);
             $i++;
         }
-
-
 
         if($i != 0){
             return response()->json($i, 200);
@@ -689,18 +741,17 @@ class ExampleController extends Controller
     }
 
     public function deletePoliklinik($id){
-        DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
-        DB::delete("DELETE FROM poliklinik WHERE id_poli = '$id'");
+        Jadwal::where('id_poli', '=', $id)->delete();
+        Poliklinik::where('id_poli', '=', $id)->delete();
     }
-    
+
 
 
     // Perawat.
     public function getAllPerawat(){
-        $result = DB::select("SELECT pe.id_perawat, pe.username, pe.password, pe.nama, pe.id_poli, po.nama_poli 
-        FROM perawat pe 
-        LEFT JOIN poliklinik po ON pe.id_poli=po.id_poli");
-        if($result != null){
+        $result = Perawat::with('poliklinik:id_poli,nama_poli')->get();
+
+        if(!$result->isEmpty()){
             return response()->json($result, 200);
         } else {
             return response()->json(false, 404);
@@ -708,37 +759,32 @@ class ExampleController extends Controller
     }
 
     public function insertPerawat(Request $request){
-        $username = $request["username"];
-        $password = $request["password"];
-        $nama = $request["nama"];
-        $id_poli = $request["id_poli"];
-        DB::insert("INSERT perawat VALUES(0,'$username', '$password', '$nama', '$id_poli')");
+        $data = [
+            'username'  => $request["username"],
+            'password'  => $request["password"],
+            'nama'      => $request["nama"],
+            'id_poli'   => $request["id_poli"]
+        ];
+
+        Perawat::create($data);
     }
 
     public function editPerawat(Request $request, $id){
-        $username = $request["username"];
-        $password = $request["password"];
-        $nama = $request["nama"];
-        $id_poli = $request["id_poli"];
-        DB::update("UPDATE perawat 
-            SET 
-                username = '$username',
-                password = '$password',
-                nama = '$nama',
-                id_poli = '$id_poli'
-             WHERE id_perawat = '$id'");
+        Perawat::where('id_perawat', '=', $id)->update([
+            'username'  => $request["username"],
+            'password'  => $request["password"],
+            'nama'      => $request["nama"],
+            'id_poli'   => $request["id_poli"]
+        ]);
     }
 
     public function deletePerawat($id){
-        DB::delete("DELETE FROM perawat WHERE id_perawat = '$id'");
+        Perawat::where('id_perawat', '=', $id)->delete();
     }
 
     public function getPerawat($id){
-        $result = DB::select("SELECT pe.id_perawat, pe.username, pe.password, pe.nama, pe.id_poli, po.nama_poli 
-        FROM perawat pe 
-        LEFT JOIN poliklinik po ON pe.id_poli=po.id_poli
-        WHERE pe.id_perawat='$id'");
-        if($result != null){
+        $result = Perawat::with('poliklinik:id_poli,nama_poli')->where('id_perawat', '=', $id)->get();
+        if(!$result->isEmpty()){
             return response()->json($result, 200);
         } else {
             return response()->json(false, 404);
@@ -746,10 +792,11 @@ class ExampleController extends Controller
     }
 
     public function loginPerawat(Request $request){
-        $username = $request["username"];
-        $password = $request["password"];
-        $result = DB::select("SELECT * FROM perawat WHERE username = '$username' AND password = '$password'");
-        if($result != null){
+        $result = Perawat::where([
+            ['username', '=', $request["username"]],
+            ['password', '=', $request["password"]],
+        ])->get();
+        if(!$result->isEmpty()){
             return response()->json($result, 200);
         } else {
             return response()->json(false, 404);
