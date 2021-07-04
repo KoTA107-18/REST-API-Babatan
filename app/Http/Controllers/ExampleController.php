@@ -181,7 +181,10 @@ class ExampleController extends Controller
     }
 
     public function getRiwayatWithPasienId(Request $request, $id){
-        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_pasien='$id'");
+        $result = DB::select("SELECT * FROM riwayat_antrean 
+        LEFT JOIN pasien ON riwayat_antrean.id_pasien=pasien.id_pasien 
+        WHERE riwayat_antrean.id_pasien='$id'");
+        
         if($result != null){
             return response()->json($result, 200);
         } else {
