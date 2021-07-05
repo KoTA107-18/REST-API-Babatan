@@ -172,7 +172,11 @@ class ExampleController extends Controller
     }
 
     public function getRiwayatWithPoliId(Request $request, $id){
-        $result = DB::select("SELECT * FROM riwayat_antrean WHERE id_poli='$id' ORDER BY jam_booking ASC");
+        $result = DB::select("SELECT * FROM riwayat_antrean 
+        LEFT JOIN pasien ON riwayat_antrean.id_pasien=pasien.id_pasien 
+        LEFT JOIN poliklinik ON riwayat_antrean.id_poli=poliklinik.id_poli 
+        WHERE poliklinik.id_poli='$id'");
+
         if($result != null){
             return response()->json($result, 200);
         } else {
