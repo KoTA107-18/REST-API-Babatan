@@ -59,4 +59,14 @@ class RiwayatAntrean extends Model implements AuthenticatableContract, Authoriza
      * @var array
      */
     protected $hidden = [];
+
+    public function pasien()
+    {
+        return $this->belongsTo(Pasien::class, 'id_pasien', 'id_pasien');
+    }
+
+    public function poliklinik()
+    {
+        return $this->belongsTo(Poliklinik::class, 'id_poli', 'id_poli');
+    }
 }

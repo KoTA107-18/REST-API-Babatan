@@ -65,6 +65,11 @@ class Poliklinik extends Model implements AuthenticatableContract, AuthorizableC
         return $this->hasManyThrough(JadwalPasien::class, Jadwal::class, 'id_poli', 'id_poli', 'id_poli', 'id_poli')->distinct();
     }
 
+    public function riwayatAntrean()
+    {
+        return $this->hasMany(RiwayatAntrean::class, 'id_poli', 'id_poli');
+    }
+
     // Menghasilkan total antrean per poli
     public function totalAntrean()
     {

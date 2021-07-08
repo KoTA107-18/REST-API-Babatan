@@ -45,6 +45,40 @@ class AuthPasienController extends Controller
         }
     }
 
+    public function checkPasien(Request $request){
+    $username           = $request->input('username');
+    $no_handphone       = $request->input('no_handphone');
+    $resultUsername     = Pasien::where('username', '=', $username)->get();
+    $resultHandphone    = Pasien::where('no_handphone', '=', $no_handphone)->get();
+
+    if ( ( $resultUsername != null ) && ( $resultHandphone != null ) ) {
+        return response()->json([
+            'success'   => false,
+            'message'   => 'Username dan Nomor Handphone anda telah digunakan!',
+            'data'      => ''
+        ], Response::HTTP_CONFLICT);
+    } else if ( $resultUsername != null && $resultHandphone == null ) {
+        return response()->json([
+            'success'   => false,
+            'message'   => 'Username anda telah digunakan!',
+            'data'      => ''
+        ], Response::HTTP_CONFLICT);
+    } else if ( $resultUsername == null && $resultHandphone != null ) {
+        return response()->json([
+            'success'   => false,
+            'message'   => 'Nomor Handphone anda telah digunakan!',
+            'data'      => ''
+        ], Response::HTTP_CONFLICT);
+    } else {
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Berhasil!',
+            'data'      => ''
+        ], Response::HTTP_OK);
+    }
+
+}
+
     public function loginDenganUsername(Request $request)
     {
         $username   = $request->input('username');

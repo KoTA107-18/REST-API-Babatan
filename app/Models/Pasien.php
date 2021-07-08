@@ -56,4 +56,9 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
     {
         return $this->hasMany(JadwalPasien::class, 'id_pasien', 'id_pasien');
     }
+
+    public function riwayatAntrean()
+    {
+        return $this->hasMany(RiwayatAntrean::class, 'id_pasien', 'id_pasien');
+    }
 }
