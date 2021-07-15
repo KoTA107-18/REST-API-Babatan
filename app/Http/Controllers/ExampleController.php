@@ -718,17 +718,18 @@ class ExampleController extends Controller
         $desc_poli = $request["desc_poli"];
         $status_poli = $request["status_poli"];
         $rerata = $request["rerata_waktu_pelayanan"];
-        DB::insert("INSERT poliklinik VALUES(0,'$nama_poli', '$desc_poli', $status_poli, $rerata)");
+        $batas_booking = $request["batas_booking"];
+        DB::insert("INSERT poliklinik VALUES(0,'$nama_poli', '$desc_poli', $status_poli, $rerata, $batas_booking)");
         $jadwal = $request["jadwal"];
         foreach ($jadwal as $jadwalPerHari) {
             $hari = $jadwalPerHari["hari"];
             $jam_buka_booking = $jadwalPerHari["jam_buka_booking"];
             $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
-            DB::insert("INSERT INTO jadwal SET 
+            DB::insert("INSERT INTO jadwal VALUES 
                 hari='$hari', 
+                id_poli = (SELECT id_poli FROM poliklinik WHERE nama_poli='$nama_poli' LIMIT 1),
                 jam_buka_booking='$jam_buka_booking', 
-                jam_tutup_booking='$jam_tutup_booking',
-                id_poli = (SELECT id_poli FROM poliklinik WHERE nama_poli='$nama_poli' LIMIT 1)");
+                jam_tutup_booking='$jam_tutup_booking'");
         }
     }
 
@@ -738,10 +739,11 @@ class ExampleController extends Controller
         $desc_poli = $request["desc_poli"];
         $status_poli = $request["status_poli"];
         $rerata = $request["rerata_waktu_pelayanan"];
+        $batas_booking = $request["batas_booking"];
 
         DB::update("UPDATE poliklinik SET nama_poli = '$nama_poli',
         desc_poli = '$desc_poli', status_poli = '$status_poli',
-        rerata_waktu_pelayanan = '$rerata' WHERE id_poli = '$id_poli'");
+        rerata_waktu_pelayanan = '$rerata', batas_booking = '$batas_booking' WHERE id_poli = '$id_poli'");
 
         DB::delete("DELETE FROM jadwal WHERE id_poli = '$id'");
 
@@ -752,9 +754,9 @@ class ExampleController extends Controller
             $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
             DB::insert("INSERT INTO jadwal SET 
                 hari='$hari', 
+                id_poli = '$id_poli',
                 jam_buka_booking='$jam_buka_booking', 
-                jam_tutup_booking='$jam_tutup_booking',
-                id_poli = '$id_poli'");
+                jam_tutup_booking='$jam_tutup_booking'");
         }
     }
 
