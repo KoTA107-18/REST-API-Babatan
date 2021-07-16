@@ -725,7 +725,7 @@ class ExampleController extends Controller
             $hari = $jadwalPerHari["hari"];
             $jam_buka_booking = $jadwalPerHari["jam_buka_booking"];
             $jam_tutup_booking = $jadwalPerHari["jam_tutup_booking"];
-            DB::insert("INSERT INTO jadwal VALUES 
+            DB::insert("INSERT INTO jadwal SET 
                 hari='$hari', 
                 id_poli = (SELECT id_poli FROM poliklinik WHERE nama_poli='$nama_poli' LIMIT 1),
                 jam_buka_booking='$jam_buka_booking', 
