@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class ExampleController extends Controller
 {
@@ -64,6 +65,41 @@ class ExampleController extends Controller
         }
 
     }
+
+    // Pasien
+    public function editPasien(Request $request){
+        $id_pasien          = $request["id_pasien"];
+        $no_handphone       = $request["no_handphone"];
+        $username           = $request["username"];
+        $kepala_keluarga    = $request["kepala_keluarga"];
+        $tgl_lahir          = $request["tgl_lahir"];
+        $alamat             = $request["alamat"];
+        $nama_lengkap       = $request["nama_lengkap"];
+        DB::insert("UPDATE pasien 
+        SET 
+            no_handphone = '$no_handphone',
+            username = '$username',
+            kepala_keluarga = '$kepala_keluarga',
+            tgl_lahir = '$tgl_lahir',
+            alamat = '$alamat',
+            nama_lengkap = '$nama_lengkap' 
+         WHERE id_pasien = '$id_pasien'");
+                
+        return response()->json(true, 200);
+    }
+
+    public function editPasswordPasien(Request $request){
+        $id_pasien  = $request["id_pasien"];
+        $password   = $request["password"];
+        $passwordEncrypt = Hash::make($password);
+        DB::insert("UPDATE pasien 
+        SET 
+            password = '$passwordEncrypt' 
+         WHERE id_pasien = '$id_pasien'");
+                
+        return response()->json(true, 200);
+    }
+    
 
     // Antrean
     public function getEstimasi(Request $request){
