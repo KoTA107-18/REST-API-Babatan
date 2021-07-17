@@ -22,7 +22,7 @@ class AntreanController extends Controller
     }
 
     // Antrean
-    public function getEstimasiAntrean ( Request $request )
+    public function getEstimasi ( Request $request )
     {
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_TIME = date("H:i", strtotime("now"));
@@ -66,7 +66,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getInfoAntrean () {
+    public function getAntreanInfo () {
         date_default_timezone_set("Asia/Jakarta");
 
         $resultPoli = Poliklinik::with('totalAntrean', 'antreanSementara', 'nomorAntrean')
@@ -81,7 +81,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getInfoAntreanWithPasienId ( Request $request, $id )
+    public function getAntreanWithPasienId ( Request $request, $id )
     {
         $result = JadwalPasien::with(
             'pasien:id_pasien,username,no_handphone,kepala_keluarga,nama_lengkap,alamat,tgl_lahir,jenis_pasien',
@@ -101,7 +101,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getInfoAntreanWithPoliId ( Request $request, $id )
+    public function getAntreanWithPoliId ( Request $request, $id )
     {
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
@@ -126,7 +126,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getRiwayatAntreanWithPasienId ( Request $request, $id )
+    public function getRiwayatWithPasienId ( Request $request, $id )
     {
         $result = RiwayatAntrean::with('pasien', 'poliklinik')->where('id_pasien', '=', $id)->get();
 
@@ -137,7 +137,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getRiwayatAntreanWithPoliId ( Request $request, $id )
+    public function getRiwayatWithPoliId ( Request $request, $id )
     {
         $result = RiwayatAntrean::with('pasien', 'poliklinik')->where('id_poli', '=', $id)->get();
 
@@ -148,7 +148,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getInfoAntreanSementaraWithPoliId ( Request $request, $id )
+    public function getAntreanWithPoliIdSementara ( Request $request, $id )
     {
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
@@ -171,7 +171,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function getInfoAntreanSelesaiWithPoliId ( Request $request, $id )
+    public function getAntreanSelesaiWithPoliId ( Request $request, $id )
     {
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
@@ -287,7 +287,7 @@ class AntreanController extends Controller
         $jenis_pasien   = $request->input('jenis_pasien');
 
         // Jika sudah mengambil Antrean
-        if ( $this->isSudahAmbilAntrean($id_pasien) ) {
+        if ( $this->isAmbilAntrean($id_pasien) ) {
             return response()->json([
                 'success'   => false,
                 'message'   => 'Anda masih memiliki antrean berlangsung!',
@@ -300,7 +300,7 @@ class AntreanController extends Controller
             // Jika Poliklinik aktif.
             if ( $this->isPoliklinikAktif($id_poli) ) {
                 // Proses Antrean
-                if( $this->hasKuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien) ) {
+                if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien) ) {
                     $this->sortNumber($id_poli, $CURRENT_DATE);
                     return response()->json([
                         'success'   => true,
@@ -330,7 +330,7 @@ class AntreanController extends Controller
             $jam_booking = $request["jam_booking"];
             if ( $this->isJadwalTersedia($id_poli, $hari, $jam_booking) ) {
                 // Proses Antrean
-                if ( $this->hasKuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking) ) {
+                if ( $this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking) ) {
                     $this->sortNumber($id_poli, $tgl_pelayanan);
                     return response()->json([
                         'success'   => true,
@@ -356,7 +356,7 @@ class AntreanController extends Controller
         }
     }
 
-    public function insertAntreanByAdmin(Request $request){
+    public function insertAntreanNormal(Request $request){
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_DATE = date("Y-m-d", strtotime("now"));
 
@@ -389,7 +389,7 @@ class AntreanController extends Controller
         // Jika Poliklinik aktif.
         if ( $this->isPoliklinikAktif($id_poli) ) {
             // Proses Antrean
-            if( $this->hasKuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien) ) {
+            if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien) ) {
                 $this->sortNumber($id_poli, $CURRENT_DATE);
                 return response()->json([
                     'success'   => true,
@@ -504,7 +504,7 @@ class AntreanController extends Controller
         return ( !$resultCheckRegist->isEmpty() );
     }
 
-    private function hasKuotaBooking ( string $hari, int $id_poli, int $id_pasien, int $jenis_pasien, string $tgl_pelayanan, string $jam_booking ): bool
+    private function kuotaBooking ( string $hari, int $id_poli, int $id_pasien, int $jenis_pasien, string $tgl_pelayanan, string $jam_booking ): bool
     {
         date_default_timezone_set("Asia/Jakarta");
 
@@ -588,7 +588,7 @@ class AntreanController extends Controller
         }
     }
 
-    private function isSudahAmbilAntrean ( int $id_pasien ): bool
+    private function isAmbilAntrean ( int $id_pasien ): bool
     {
         $resultCheckRegist = JadwalPasien::where('id_pasien', '=', $id_pasien)
             ->where('status_antrean', '!=', 3)
@@ -607,7 +607,7 @@ class AntreanController extends Controller
         return ( !$resultCheckRegist->isEmpty() );
     }
 
-    private function hasKuotaNonBooking ( string $hari, int $id_poli, int $id_pasien, int $jenis_pasien ): bool
+    private function kuotaNonBooking ( string $hari, int $id_poli, int $id_pasien, int $jenis_pasien ): bool
     {
         date_default_timezone_set("Asia/Jakarta");
         $status = false;

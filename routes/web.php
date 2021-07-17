@@ -33,6 +33,10 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('/login/nohp', 'AuthPasienController@loginDenganNoHp');
         // Logout
         $router->post('/logout', 'PasienController@logout');
+        // Edit informasi pasien
+        $router->put('/edit','PasienController@editPasien');
+        // Ubah Password
+        $router->put('/edit/password','PasienController@editPasswordPasien');
     });
     /* --- Administrator --- */
     $router->group(['prefix' => 'administrator'], function () use ($router) {
@@ -57,27 +61,27 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     /* --- Antrean --- */
     $router->group(['prefix' => 'antrean'], function () use ($router) {
         // Get Info Estimasi.
-        $router->post('/estimasi', 'AntreanController@getEstimasiAntrean');
+        $router->post('/estimasi', 'AntreanController@getEstimasi');
         // Get Info Antrean Hari Ini.
-        $router->get('/info','AntreanController@getInfoAntrean');
+        $router->get('/info','AntreanController@getAntreanInfo');
         // Get Antrean aktif di user tertentu.
-        $router->get('/pasien/{id}','AntreanController@getInfoAntreanWithPasienId');
+        $router->get('/pasien/{id}','AntreanController@getAntreanWithPasienId');
         // Get Riwayat Antrean berdasarkan User.
-        $router->get('/pasien/riwayat/{id}','AntreanController@getRiwayatAntreanWithPasienId');
+        $router->get('/pasien/riwayat/{id}','AntreanController@getRiwayatWithPasienId');
         // Get Riwayat Antrean berdasarkan Poliklinik.
-        $router->get('/poliklinik/riwayat/{id}','AntreanController@getRiwayatAntreanWithPoliId');
+        $router->get('/poliklinik/riwayat/{id}','AntreanController@getRiwayatWithPoliId');
         // Get Antrean berdasarkan Poliklinik (Antrean Utama).
-        $router->get('/poliklinik/utama/{id}','AntreanController@getInfoAntreanWithPoliId');
+        $router->get('/poliklinik/utama/{id}','AntreanController@getAntreanWithPoliId');
         // Get Antrean berdasarkan Poliklinik (Antrean Sementara).
-        $router->get('/poliklinik/sementara/{id}','AntreanController@getInfoAntreanSementaraWithPoliId');
+        $router->get('/poliklinik/sementara/{id}','AntreanController@getAntreanWithPoliIdSementara');
         // Get Riwayat berdasarkan Poliklinik (Antrean Selesai).
-        $router->get('/poliklinik/selesai/{id}','AntreanController@getInfoAntreanSelesaiWithPoliId');
+        $router->get('/poliklinik/selesai/{id}','AntreanController@getAntreanSelesaiWithPoliId');
         // Update Antrean Status.
         $router->put('/edit','AntreanController@editAntrean');
         // Insert Antrean.
         $router->post('/insert','AntreanController@insertAntrean');
         // Insert Antrean by Admin.
-        $router->post('/insert/admin','AntreanController@insertAntreanByAdmin');
+        $router->post('/insert/admin','AntreanController@insertAntreanNormal');
         // Insert Antrean Gawat.
         $router->post('/insert/admin/gawat','AntreanController@insertAntreanGawat');
     });

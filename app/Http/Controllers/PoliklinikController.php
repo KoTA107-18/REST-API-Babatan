@@ -68,12 +68,14 @@ class PoliklinikController extends Controller
         $status_poli    = $request->input('status_poli');
         $rerata         = $request->input('rerata_waktu_pelayanan');
         $jadwal         = $request->input('jadwal');
+        $batas_booking  = $request->input('batas_booking');
 
         Poliklinik::create([
             'nama_poli'                 => $nama_poli,
             'desc_poli'                 => $desc_poli,
             'status_poli'               => $status_poli,
             'rerata_waktu_pelayanan'    => $rerata,
+            'batas_booking'             => $batas_booking,
         ]);
 
         foreach ($jadwal as $jadwalPerHari) {
@@ -101,6 +103,7 @@ class PoliklinikController extends Controller
         $status_poli    = $request->input('status_poli');
         $rerata         = $request->input('rerata_waktu_pelayanan');
         $jadwal         = $request->input('jadwal');
+        $batas_booking  = $request->input('batas_booking');
 
         Poliklinik::where('id_poli', '=', $id_poli)
             ->update([
@@ -108,6 +111,7 @@ class PoliklinikController extends Controller
                 'desc_poli'                 => $desc_poli,
                 'status_poli'               => $status_poli,
                 'rerata_waktu_pelayanan'    => $rerata,
+                'batas_booking'             => $batas_booking,
             ]);
 
         Jadwal::where('id_poli', '=', $id_poli)->delete();
@@ -118,10 +122,10 @@ class PoliklinikController extends Controller
             $jam_tutup_booking  = $jadwalPerHari["jam_tutup_booking"];
 
             $data = [
+                'id_poli'           => $id_poli,
                 'hari'              => $hari,
                 'jam_buka_booking'  => $jam_buka_booking,
                 'jam_tutup_booking' => $jam_tutup_booking,
-                'id_poli'           => $id_poli,
             ];
 
             Jadwal::create($data);

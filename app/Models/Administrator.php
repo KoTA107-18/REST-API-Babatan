@@ -22,7 +22,7 @@ class Administrator extends Model implements AuthenticatableContract, Authorizab
 
     public $timestamps = false;
 
-    protected $primaryKey = 'username_admin';
+    protected $primaryKey = 'username';
 
     public $incrementing = false;
 
@@ -32,7 +32,7 @@ class Administrator extends Model implements AuthenticatableContract, Authorizab
      * @var array
      */
     protected $fillable = [
-        'username_admin',
+        'username',
     ];
 
     /**
@@ -41,6 +41,6 @@ class Administrator extends Model implements AuthenticatableContract, Authorizab
      * @var array
      */
     protected $hidden = [
-        'password_admin',
+        'password',
     ];
 }

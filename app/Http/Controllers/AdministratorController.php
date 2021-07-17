@@ -22,8 +22,8 @@ class AdministratorController extends Controller
     public function administratorLogin(Request $request){
         $username   = $request->input('username');
         $password   = $request->input('password');
-        $result     = Administrator::where('username_admin', '=', $username)
-                                   ->where('password_admin', '=', $password)
+        $result     = Administrator::where('username', '=', $username)
+                                   ->where('password', '=', $password)
                                    ->get();
 
         if( !$result->isEmpty() ){
