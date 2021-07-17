@@ -30,9 +30,9 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 // Check apakah username / no handphone exist
 $router->post('/pasien/validasi','ExampleController@checkPasien');
 // Edit informasi pasien
-$router->post('/pasien','ExampleController@editPasien');
+$router->put('/pasien','ExampleController@editPasien');
 // Ubah Password
-$router->post('/pasien/password','ExampleController@editPasswordPasien');
+$router->put('/pasien/password','ExampleController@editPasswordPasien');
 
 // --- Administrator ---
 // Admin Login
