@@ -142,6 +142,8 @@ class ExampleController extends Controller
         $kepala_keluarga    = $request["kepala_keluarga"];
         $tgl_lahir          = $request["tgl_lahir"];
         $alamat             = $request["alamat"];
+        $latitude           = $request["latitude"];
+        $longitude          = $request["longitude"];
         $nama_lengkap       = $request["nama_lengkap"];
         DB::insert("UPDATE pasien 
         SET 
@@ -150,6 +152,8 @@ class ExampleController extends Controller
             kepala_keluarga = '$kepala_keluarga',
             tgl_lahir = '$tgl_lahir',
             alamat = '$alamat',
+            latitude = '$latitude',
+            longitude = '$longitude',
             nama_lengkap = '$nama_lengkap' 
          WHERE id_pasien = '$id_pasien'");
                 
@@ -493,7 +497,9 @@ class ExampleController extends Controller
         string $hari,
         int $id_poli, 
         int $id_pasien,
-        int $jenis_pasien){
+        int $jenis_pasien,
+        string $latitude,
+        string $longitude){
             date_default_timezone_set("Asia/Jakarta");
             $status = false;
             $CURRENT_DATE = date("Y-m-d", strtotime("now"));
@@ -526,7 +532,7 @@ class ExampleController extends Controller
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
                     '$id_poli', '$hari', '$id_pasien',
                     '0', '0', '$CURRENT_DATE', '$jamIterator', '$CURRENT_TIMEDATE',
-                    NULL, NULL, 1)");
+                    NULL, NULL, NULLIF('$latitude',''), NULLIF('$longitude',''), 1)");
                 return true;
             } else {
                 return false;
@@ -554,7 +560,9 @@ class ExampleController extends Controller
         int $id_pasien,
         int $jenis_pasien,
         string $tgl_pelayanan,
-        string $jam_booking){
+        string $jam_booking,
+        string $latitude,
+        string $longitude){
             date_default_timezone_set("Asia/Jakarta");
             // Inisialisasi
             $CURRENT_TIMEDATE = date("Y-m-d H:i:s", strtotime("now"));
@@ -584,7 +592,7 @@ class ExampleController extends Controller
                 DB::insert("INSERT INTO jadwal_pasien VALUES(
                     '$id_poli', '$hari', '$id_pasien',
                     '0', '1', '$tgl_pelayanan', '$jamBookingIterator', '$CURRENT_TIMEDATE',
-                    NULL, NULL, 1)");
+                    NULL, NULL, NULLIF('$latitude',''), NULLIF('$longitude',''), 1)");
                 return true;
             } else {
                 return false;
@@ -602,6 +610,8 @@ class ExampleController extends Controller
         $id_pasien = $request["id_pasien"];
         $tipe_booking = $request["tipe_booking"];
         $jenis_pasien = $request["jenis_pasien"];
+        $latitude           = $request["latitude"];
+        $longitude          = $request["longitude"];
         
         // Jika sudah mengambil Antrean
         if($this->isAmbilAntrean($id_pasien) == true){
@@ -617,7 +627,7 @@ class ExampleController extends Controller
             // Jika Poliklinik aktif.
             if($this->isPoliklinikAktif($id_poli)){
                 // Proses Antrean
-                if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien)){
+                if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien)){
                     $this->sortNumber($id_poli, $CURRENT_DATE);
                     return response()->json([
                         'success'   => true,
@@ -647,7 +657,7 @@ class ExampleController extends Controller
             $jam_booking = $request["jam_booking"];
             if($this->isJadwalTersedia($id_poli, $hari, $jam_booking)){
                 // Proses Antrean
-                if($this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking)){
+                if($this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking, $latitude, $longitude)){
                     $this->sortNumber($id_poli, $tgl_pelayanan);
                     return response()->json([
                         'success'   => true,
@@ -688,16 +698,18 @@ class ExampleController extends Controller
         $nama_lengkap       = $request["nama_lengkap"];
         $tgl_lahir          = $request["tgl_lahir"];
         $alamat             = $request["alamat"];
+        $latitude           = $request["latitude"];
+        $longitude          = $request["longitude"];
         $kepala_keluarga    = $request["kepala_keluarga"];
         $no_handphone       = $request["no_handphone"];
 
-        DB::insert("INSERT INTO `pasien` VALUES (0, NULL, NULLIF('$no_handphone',''), NULLIF('$kepala_keluarga',''), NULLIF('$tgl_lahir',''), NULLIF('$alamat',''), NULLIF('$nama_lengkap',''), NULL, NULL, NULLIF('$jenis_pasien',''))");
+        DB::insert("INSERT INTO `pasien` VALUES (0, NULL, NULLIF('$no_handphone',''), NULL, NULLIF('$kepala_keluarga',''), NULLIF('$tgl_lahir',''), NULLIF('$alamat',''), NULL, NULL, NULLIF('$nama_lengkap',''), NULL, NULLIF('$jenis_pasien',''))");
         $resultId = DB::select("SELECT LAST_INSERT_ID() AS id_pasien");
         $id_pasien = $resultId[0]->id_pasien;
 
         if($this->isPoliklinikAktif($id_poli)){
             // Proses Antrean
-            if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $jenis_pasien)){
+            if($this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien)){
                 $this->sortNumber($id_poli, $CURRENT_DATE);
                 return response()->json([
                     'success'   => true,
@@ -747,10 +759,10 @@ class ExampleController extends Controller
             $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
         }
 
-        DB::insert("INSERT INTO `pasien` VALUES (0, NULL, NULLIF('$no_handphone',''), NULLIF('$kepala_keluarga',''), NULLIF('$tgl_lahir',''), NULLIF('$alamat',''), NULLIF('$nama_lengkap',''), NULL, NULL, NULLIF('$jenis_pasien',''))");
+        DB::insert("INSERT INTO `pasien` VALUES (0, NULL, NULLIF('$no_handphone',''), NULL, NULLIF('$kepala_keluarga',''), NULLIF('$tgl_lahir',''), NULLIF('$alamat',''), NULL, NULL, NULLIF('$nama_lengkap',''), NULL, NULLIF('$jenis_pasien',''))");
         $resultId = DB::select("SELECT LAST_INSERT_ID() AS id_pasien");
         $id_pasien = $resultId[0]->id_pasien;
-        DB::insert("INSERT INTO jadwal_pasien VALUES('$id_poli', '$hari', '$id_pasien', '0', '0', '$CURRENT_DATE', '$jamIterator', '$CURRENT_TIMEDATE', '$CURRENT_TIME', NULL, 2)");
+        DB::insert("INSERT INTO jadwal_pasien VALUES('$id_poli', '$hari', '$id_pasien', '0', '0', '$CURRENT_DATE', '$jamIterator', '$CURRENT_TIMEDATE', '$CURRENT_TIME', NULL, NULL, NULL, 2)");
         $this->sortNumber($id_poli, $CURRENT_DATE);
 
         return response()->json([

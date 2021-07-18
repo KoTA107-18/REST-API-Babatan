@@ -18,6 +18,8 @@ class AuthPasienController extends Controller
         $kepala_keluarga= $request->input('kepala_keluarga');
         $tgl_lahir      = $request->input('tgl_lahir');
         $alamat         = $request->input('alamat');
+        $latitude       = $request->input('latitude');
+        $longitude      = $request->input('longitude');
         $nama_lengkap   = $request->input('nama_lengkap');
 
         $register       = Pasien::create([
@@ -27,6 +29,8 @@ class AuthPasienController extends Controller
             'kepala_keluarga' => $kepala_keluarga,
             'tgl_lahir'       => $tgl_lahir,
             'alamat'          => $alamat,
+            'latitude'        => $latitude,
+            'longitude'       => $longitude,
             'nama_lengkap'    => $nama_lengkap
         ]);
 

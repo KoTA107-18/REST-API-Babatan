@@ -32,7 +32,7 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
      * @var array
      */
     protected $fillable = [
-        'username', 'no_handphone', 'api_token', 'password', 'kepala_keluarga', 'tgl_lahir', 'alamat', 'nama_lengkap',
+        'username', 'no_handphone', 'api_token', 'password', 'kepala_keluarga', 'tgl_lahir', 'alamat', 'latitude', 'longitude', 'nama_lengkap',
     ];
 
     /**
