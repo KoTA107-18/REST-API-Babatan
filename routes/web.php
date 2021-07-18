@@ -33,6 +33,8 @@ $router->post('/pasien/validasi','ExampleController@checkPasien');
 $router->put('/pasien','ExampleController@editPasien');
 // Ubah Password
 $router->put('/pasien/password','ExampleController@editPasswordPasien');
+// Get Info Pasien
+$router->get('/pasien/{id}','ExampleController@getPasien');
 
 // --- Administrator ---
 // Admin Login

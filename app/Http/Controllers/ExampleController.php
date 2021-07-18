@@ -99,6 +99,15 @@ class ExampleController extends Controller
                 
         return response()->json(true, 200);
     }
+
+    public function getPasien(Request $request, $id){
+        $result = DB::select("SELECT * FROM pasien WHERE id_pasien='$id'");
+        if($result != null){
+            return response()->json($result, 200);
+        } else {
+            return response()->json(false, 404);
+        }
+    }
     
 
     // Antrean
