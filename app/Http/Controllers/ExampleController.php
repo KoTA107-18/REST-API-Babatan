@@ -497,9 +497,9 @@ class ExampleController extends Controller
         string $hari,
         int $id_poli, 
         int $id_pasien,
-        int $jenis_pasien,
         string $latitude,
-        string $longitude){
+        string $longitude,
+        int $jenis_pasien){
             date_default_timezone_set("Asia/Jakarta");
             $status = false;
             $CURRENT_DATE = date("Y-m-d", strtotime("now"));
