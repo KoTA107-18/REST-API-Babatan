@@ -507,25 +507,28 @@ class ExampleController extends Controller
             $CURRENT_TIMEDATE = date("Y-m-d H:i", strtotime("now"));
             $jamIterator = date("H:i", strtotime(substr($CURRENT_TIME, 0, 2) . ':00'));
             $resultInfoPoliklinik = DB::select("SELECT * FROM `poliklinik` JOIN `jadwal` ON poliklinik.id_poli=jadwal.id_poli WHERE poliklinik.id_poli='$id_poli' AND jadwal.hari='$hari'");
-            $resultAntrean = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE'");
-            $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
-            $jamTutup = $resultInfoPoliklinik[0]->jam_tutup_booking;
-            $jamBuka = $resultInfoPoliklinik[0]->jam_buka_booking;
-            $kuota = floor(60/$rataRata);
-
             
-            while (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jamIterator))) {
-                $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
-            }
-
-            while (($status == false) AND ($jamIterator < $jamTutup) AND ($jamIterator >= $jamBuka)){
-                $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator' AND status_antrean!=5");
-                if($result == null){
-                    $status = true;
-                }
-                if($status != true){
+            if($resultInfoPoliklinik != null){
+                $rataRata = $resultInfoPoliklinik[0]->rerata_waktu_pelayanan;
+                $jamTutup = $resultInfoPoliklinik[0]->jam_tutup_booking;
+                $jamBuka = $resultInfoPoliklinik[0]->jam_buka_booking;
+                $kuota = floor(60/$rataRata);
+                
+                while (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jamIterator))) {
                     $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
                 }
+
+                while (($status == false) AND ($jamIterator < $jamTutup) AND ($jamIterator >= $jamBuka)){
+                    $result = DB::select("SELECT * FROM `jadwal_pasien` WHERE id_poli='$id_poli' AND tgl_pelayanan='$CURRENT_DATE' AND jam_booking='$jamIterator' AND status_antrean!=5");
+                    if($result == null){
+                        $status = true;
+                    }
+                    if($status != true){
+                        $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
+                    }
+                }
+            } else {
+                $status = false;
             }
 
             if($status){
@@ -537,10 +540,6 @@ class ExampleController extends Controller
             } else {
                 return false;
             }
-
-            
-
-            
 
     }
 
