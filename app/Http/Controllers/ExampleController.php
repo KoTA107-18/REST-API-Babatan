@@ -21,6 +21,74 @@ class ExampleController extends Controller
         // }
     }
 
+    // Buka Tutup Portal
+    function bukaPortal(){
+        $CURRENT_DAY = strtoupper(date("D", strtotime("now")));
+        $kodeHari = "";
+        if($CURRENT_DAY == "SUN"){
+            $kodeHari = "MG";
+        } else if($CURRENT_DAY == "MON"){
+            $kodeHari = "SN";
+        } else if($CURRENT_DAY == "TUE"){
+            $kodeHari = "SL";
+        } else if($CURRENT_DAY == "WED"){
+            $kodeHari = "RB";
+        } else if($CURRENT_DAY == "THU"){
+            $kodeHari = "KM";
+        } else if($CURRENT_DAY == "FRI"){
+            $kodeHari = "JM";
+        } else if($CURRENT_DAY == "SAT"){
+            $kodeHari = "SB";
+        }
+
+        $resultPoli = DB::select("SELECT * FROM poliklinik 
+        JOIN jadwal ON poliklinik.id_poli=jadwal.id_poli
+        WHERE jadwal.hari='$kodeHari'");
+
+        if($resultPoli != null){
+            foreach ($resultPoli as $row) {
+                $idPoli = $row->id_poli;
+                $resultJadwal = DB::update("UPDATE poliklinik 
+                SET status_poli = 1 
+                WHERE id_poli = '$idPoli'");
+            }
+        }
+    }
+
+    function tutupPortal(){
+        $CURRENT_DAY = strtoupper(date("D", strtotime("now")));
+        $kodeHari = "";
+        if($CURRENT_DAY == "SUN"){
+            $kodeHari = "MG";
+        } else if($CURRENT_DAY == "MON"){
+            $kodeHari = "SN";
+        } else if($CURRENT_DAY == "TUE"){
+            $kodeHari = "SL";
+        } else if($CURRENT_DAY == "WED"){
+            $kodeHari = "RB";
+        } else if($CURRENT_DAY == "THU"){
+            $kodeHari = "KM";
+        } else if($CURRENT_DAY == "FRI"){
+            $kodeHari = "JM";
+        } else if($CURRENT_DAY == "SAT"){
+            $kodeHari = "SB";
+        }
+
+        $resultPoli = DB::select("SELECT * FROM poliklinik 
+        JOIN jadwal ON poliklinik.id_poli=jadwal.id_poli
+        WHERE jadwal.hari='$kodeHari'");
+
+        if($resultPoli != null){
+            foreach ($resultPoli as $row) {
+                $idPoli = $row->id_poli;
+                $resultJadwal = DB::update("UPDATE poliklinik 
+                SET status_poli = 0 
+                WHERE id_poli = '$idPoli'");
+            }
+        }
+    }
+
+
     // Administrator
     public function administratorLogin(Request $request){
         $username = $request["username"];
