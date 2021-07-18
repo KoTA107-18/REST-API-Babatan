@@ -1,6 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/kotaxyz/apibabatan/public
-#    - /bin/cp index.html $DEPLOYPATH
-#    - /bin/cp style.css $DEPLOYPATH
+    - export DEPLOYPATH=/home/kotaxyz/apibabatan
+    - /bin/cp -R * $DEPLOYPATH
