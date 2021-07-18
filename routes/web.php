@@ -69,8 +69,10 @@ $router->post('/antrean/admin/gawat','ExampleController@insertAntreanGawat');
 // --- Poliklinik ---
 // Buka Portal.
 $router->get('/poliklinik/buka','ExampleController@bukaPortal');
-// Get Poliklinik (Semua).
+// Tutup Portal.
 $router->get('/poliklinik/tutup','ExampleController@tutupPortal');
+// Get All Poliklinik
+$router->get('/poliklinik','ExampleController@getAllPoliklinik');
 // Get Poliklinik (Id tertentu).
 $router->get('/poliklinik/{id}','ExampleController@getPoliklinik');
 // Insert Poliklinik.
