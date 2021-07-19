@@ -38,6 +38,7 @@ class Poliklinik extends Model implements AuthenticatableContract, AuthorizableC
         'desc_poli',
         'status_poli',
         'rerata_waktu_pelayanan',
+        'batas_booking',
     ];
 
     /**

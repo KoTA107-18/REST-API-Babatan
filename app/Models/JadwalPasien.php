@@ -42,6 +42,8 @@ class JadwalPasien extends Model implements AuthenticatableContract, Authorizabl
         'waktu_daftar_antrean',
         'jam_mulai_dilayani',
         'jam_selesai_dilayani',
+        'latitude',
+        'longitude',
         'status_antrean',
     ];
 

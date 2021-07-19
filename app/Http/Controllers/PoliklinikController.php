@@ -153,4 +153,67 @@ class PoliklinikController extends Controller
         Jadwal::where('id_poli', '=', $id)->delete();
         Poliklinik::where('id_poli', '=', $id)->delete();
     }
+
+    // Buka Tutup Portal
+    function bukaPortal(){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_DAY    = strtoupper(date("D", strtotime("now")));
+        $kodeHari       = "";
+
+        if($CURRENT_DAY == "SUN"){
+            $kodeHari = "MG";
+        } else if($CURRENT_DAY == "MON"){
+            $kodeHari = "SN";
+        } else if($CURRENT_DAY == "TUE"){
+            $kodeHari = "SL";
+        } else if($CURRENT_DAY == "WED"){
+            $kodeHari = "RB";
+        } else if($CURRENT_DAY == "THU"){
+            $kodeHari = "KM";
+        } else if($CURRENT_DAY == "FRI"){
+            $kodeHari = "JM";
+        } else if($CURRENT_DAY == "SAT"){
+            $kodeHari = "SB";
+        }
+
+        $resultPoli = Jadwal::with('poliklinik')->where('hari', '=', $kodeHari)->get();
+
+        if ( !$resultPoli->isEmpty() ) {
+            foreach ($resultPoli as $row) {
+                $idPoli = $row->poliklinik->id_poli;
+                $resultJadwal = Poliklinik::where('id_poli', '=', $idPoli)->update(['status_poli' => 1]);
+            }
+        }
+    }
+
+    function tutupPortal(){
+        date_default_timezone_set("Asia/Jakarta");
+        $CURRENT_DAY    = strtoupper(date("D", strtotime("now")));
+        $kodeHari       = "";
+
+        if($CURRENT_DAY == "SUN"){
+            $kodeHari = "MG";
+        } else if($CURRENT_DAY == "MON"){
+            $kodeHari = "SN";
+        } else if($CURRENT_DAY == "TUE"){
+            $kodeHari = "SL";
+        } else if($CURRENT_DAY == "WED"){
+            $kodeHari = "RB";
+        } else if($CURRENT_DAY == "THU"){
+            $kodeHari = "KM";
+        } else if($CURRENT_DAY == "FRI"){
+            $kodeHari = "JM";
+        } else if($CURRENT_DAY == "SAT"){
+            $kodeHari = "SB";
+        }
+
+        $resultPoli = Jadwal::with('poliklinik')->where('hari', '=', $kodeHari)->get();
+
+        if ( !$resultPoli->isEmpty() ) {
+            foreach ($resultPoli as $row) {
+                $idPoli = $row->poliklinik->id_poli;
+                $resultJadwal = Poliklinik::where('id_poli', '=', $idPoli)->update(['status_poli' => 0]);
+            }
+        }
+    }
 }

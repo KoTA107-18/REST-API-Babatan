@@ -39,6 +39,8 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
         'kepala_keluarga',
         'tgl_lahir',
         'alamat',
+        'latitude',
+        'longitude',
         'nama_lengkap',
     ];
 

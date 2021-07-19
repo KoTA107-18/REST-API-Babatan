@@ -17,9 +17,7 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->get('/testElo', 'ExampleController@testElo');
-
-/* --- API --- */
+/* --- API tanpa auth --- */
 $router->group(['prefix' => 'api'], function () use ($router) {
     /* --- Pasien --- */
     $router->group(['prefix' => 'pasien'], function () use ($router) {
@@ -31,17 +29,32 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('/login/username', 'AuthPasienController@loginDenganUsername');
         // Login dengan nomor handphone
         $router->post('/login/nohp', 'AuthPasienController@loginDenganNoHp');
-        // Logout
-        $router->post('/logout', 'PasienController@logout');
-        // Edit informasi pasien
-        $router->put('/edit','PasienController@editPasien');
-        // Ubah Password
-        $router->put('/edit/password','PasienController@editPasswordPasien');
     });
     /* --- Administrator --- */
     $router->group(['prefix' => 'administrator'], function () use ($router) {
         // Admin login
         $router->post('/login', 'AdministratorController@administratorLogin');
+    });
+    /* --- Perawat --- */
+    $router->group(['prefix' => 'perawat'], function () use ($router) {
+        // Perawat Login.
+        $router->post('/login','PerawatController@loginPerawat');
+    });
+});
+
+
+/* --- API dengan auth --- */
+$router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($router) {
+    /* --- Pasien --- */
+    $router->group(['prefix' => 'pasien'], function () use ($router) {
+        // Logout
+        $router->post('/logout', 'PasienController@logout');
+        // Get Info Pasien
+        $router->get('/{id}','PasienController@getPasien');
+        // Edit informasi pasien
+        $router->put('/edit','PasienController@editPasien');
+        // Ubah Password
+        $router->put('/edit/password','PasienController@editPasswordPasien');
     });
     /* --- Perawat --- */
     $router->group(['prefix' => 'perawat'], function () use ($router) {
@@ -55,8 +68,6 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->get('/','PerawatController@getAllPerawat');
         // Get Perawat (Id tertentu).
         $router->get('/{id}','PerawatController@getPerawat');
-        // Perawat Login.
-        $router->post('/login','PerawatController@loginPerawat');
     });
     /* --- Antrean --- */
     $router->group(['prefix' => 'antrean'], function () use ($router) {
