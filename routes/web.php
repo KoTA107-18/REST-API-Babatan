@@ -22,13 +22,13 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     /* --- Pasien --- */
     $router->group(['prefix' => 'pasien'], function () use ($router) {
         // Registrasi pasien
-        $router->post('/register', 'AuthPasienController@register');
+        $router->post('/register', 'PasienController@register');
         // Check apakah username / no handphone exist
-        $router->post('/validasi', 'AuthPasienController@checkPasien');
+        $router->post('/validasi', 'PasienController@checkPasien');
         // Login dengan username
-        $router->post('/login/username', 'AuthPasienController@loginDenganUsername');
+        $router->post('/login/username', 'PasienController@loginDenganUsername');
         // Login dengan nomor handphone
-        $router->post('/login/nohp', 'AuthPasienController@loginDenganNoHp');
+        $router->post('/login/nohp', 'PasienController@loginDenganNoHp');
     });
     /* --- Administrator --- */
     $router->group(['prefix' => 'administrator'], function () use ($router) {
