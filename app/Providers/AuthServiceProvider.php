@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Pasien;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -33,7 +34,7 @@ class AuthServiceProvider extends ServiceProvider
         $this->app['auth']->viaRequest('api', function ($request) {
             if ($request->header('Authorization')) {
                 $apiToken = explode(' ', $request->header('Authorization'));
-                
+
                 if (Hash::check('admin', $apiToken[1])) {
                     return Hash::check('admin', $apiToken[1]);
                 } elseif (Hash::check('perawat', $apiToken[1])) {
