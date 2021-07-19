@@ -261,15 +261,9 @@ class AntreanController extends Controller
                 'waktu_daftar_antrean'  => $result->waktu_daftar_antrean,
                 'jam_mulai_dilayani'    => $this->nullIf( $result->jam_mulai_dilayani, '' ),
                 'jam_selesai_dilayani'  => $this->nullIf( $result->jam_selesai_dilayani, '' ),
+                'latitude'              => $this->nullIf( $result->latitude, '' ),
+                'longitude'             => $this->nullIf( $result->longitude, '' ),
                 'status_antrean'        => $status_antrean,
-                'nama_poli'             => $result->poliklinik->nama_poli,
-                'username'              => $result->pasien->username,
-                'no_handphone'          => $result->pasien->no_handphone,
-                'kepala_keluarga'       => $result->pasien->kepala_keluarga,
-                'tgl_lahir'             => $result->pasien->tgl_lahir,
-                'alamat'                => $result->pasien->alamat,
-                'nama_lengkap'          => $result->pasien->nama_lengkap,
-                'jenis_pasien'          => $result->pasien->jenis_pasien,
             ];
 
             RiwayatAntrean::create($data);

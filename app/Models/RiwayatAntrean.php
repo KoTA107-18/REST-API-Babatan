@@ -42,15 +42,9 @@ class RiwayatAntrean extends Model implements AuthenticatableContract, Authoriza
         'waktu_daftar_antrean',
         'jam_mulai_dilayani',
         'jam_selesai_dilayani',
+        'latitude',
+        'longitude',
         'status_antrean',
-        'nama_poli',
-        'username',
-        'no_handphone',
-        'kepala_keluarga',
-        'tgl_lahir',
-        'alamat',
-        'nama_lengkap',
-        'jenis_pasien',
     ];
 
     /**
