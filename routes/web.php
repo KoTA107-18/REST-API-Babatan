@@ -17,84 +17,100 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+/* --- API tanpa auth --- */
 $router->group(['prefix' => 'api'], function () use ($router) {
+    /* --- Pasien --- */
     $router->group(['prefix' => 'pasien'], function () use ($router) {
+        // Registrasi pasien
         $router->post('/register', 'AuthPasienController@register');
+        // Check apakah username / no handphone exist
+        $router->post('/validasi', 'AuthPasienController@checkPasien');
+        // Login dengan username
         $router->post('/login/username', 'AuthPasienController@loginDenganUsername');
+        // Login dengan nomor handphone
         $router->post('/login/nohp', 'AuthPasienController@loginDenganNoHp');
-        $router->post('/logout', 'PasienController@logout');
+    });
+    /* --- Administrator --- */
+    $router->group(['prefix' => 'administrator'], function () use ($router) {
+        // Admin login
+        $router->post('/login', 'AdministratorController@administratorLogin');
+    });
+    /* --- Perawat --- */
+    $router->group(['prefix' => 'perawat'], function () use ($router) {
+        // Perawat Login.
+        $router->post('/login','PerawatController@loginPerawat');
     });
 });
 
-// --- Pasien ---
-// Check apakah username / no handphone exist
-$router->post('/pasien/validasi','ExampleController@checkPasien');
-// Edit informasi pasien
-$router->put('/pasien','ExampleController@editPasien');
-// Ubah Password
-$router->put('/pasien/password','ExampleController@editPasswordPasien');
-// Get Info Pasien
-$router->get('/pasien/{id}','ExampleController@getPasien');
 
-// --- Administrator ---
-// Admin Login
-$router->post('/administrator/login','ExampleController@administratorLogin');
+/* --- API dengan auth --- */
+$router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($router) {
+    /* --- Pasien --- */
+    $router->group(['prefix' => 'pasien'], function () use ($router) {
+        // Logout
+        $router->post('/logout', 'PasienController@logout');
+        // Get Info Pasien
+        $router->get('/{id}','PasienController@getPasien');
+        // Edit informasi pasien
+        $router->put('/edit','PasienController@editPasien');
+        // Ubah Password
+        $router->put('/edit/password','PasienController@editPasswordPasien');
+    });
+    /* --- Perawat --- */
+    $router->group(['prefix' => 'perawat'], function () use ($router) {
+        // Menambahkan perawat
+        $router->post('/insert','PerawatController@insertPerawat');
+        // Edit Perawat (Id tertentu).
+        $router->put('/edit/{id}','PerawatController@editPerawat');
+        // Delete Perawat (Id tertentu).
+        $router->delete('/delete/{id}','PerawatController@deletePerawat');
+        // Get Perawat (Semua).
+        $router->get('/','PerawatController@getAllPerawat');
+        // Get Perawat (Id tertentu).
+        $router->get('/{id}','PerawatController@getPerawat');
+    });
+    /* --- Antrean --- */
+    $router->group(['prefix' => 'antrean'], function () use ($router) {
+        // Get Info Estimasi.
+        $router->post('/estimasi', 'AntreanController@getEstimasi');
+        // Get Info Antrean Hari Ini.
+        $router->get('/info','AntreanController@getAntreanInfo');
+        // Get Antrean aktif di user tertentu.
+        $router->get('/pasien/{id}','AntreanController@getAntreanWithPasienId');
+        // Get Riwayat Antrean berdasarkan User.
+        $router->get('/pasien/riwayat/{id}','AntreanController@getRiwayatWithPasienId');
+        // Get Riwayat Antrean berdasarkan Poliklinik.
+        $router->get('/poliklinik/riwayat/{id}','AntreanController@getRiwayatWithPoliId');
+        // Get Antrean berdasarkan Poliklinik (Antrean Utama).
+        $router->get('/poliklinik/utama/{id}','AntreanController@getAntreanWithPoliId');
+        // Get Antrean berdasarkan Poliklinik (Antrean Sementara).
+        $router->get('/poliklinik/sementara/{id}','AntreanController@getAntreanWithPoliIdSementara');
+        // Get Riwayat berdasarkan Poliklinik (Antrean Selesai).
+        $router->get('/poliklinik/selesai/{id}','AntreanController@getAntreanSelesaiWithPoliId');
+        // Update Antrean Status.
+        $router->put('/edit','AntreanController@editAntrean');
+        // Insert Antrean.
+        $router->post('/insert','AntreanController@insertAntrean');
+        // Insert Antrean by Admin.
+        $router->post('/insert/admin','AntreanController@insertAntreanNormal');
+        // Insert Antrean Gawat.
+        $router->post('/insert/admin/gawat','AntreanController@insertAntreanGawat');
+    });
+    /* --- Poliklinik --- */
+    $router->group(['prefix' => 'poliklinik'], function () use ($router) {
+        // Get Poliklinik (Semua).
+        $router->get('/','PoliklinikController@getAllPoliklinik');
+        // Get Poliklinik (Id tertentu).
+        $router->get('/{id}','PoliklinikController@getPoliklinik');
+        // Insert Poliklinik.
+        $router->post('/insert','PoliklinikController@insertPoliklinik');
+        // Edit Status Poliklinik (portal).
+        $router->put('/status','PoliklinikController@ubahStatusAllPoli');
+        // Edit Poliklinik
+        $router->put('/edit/{id}','PoliklinikController@ubahPoliklinik');
+        // Delete Poliklinik
+        $router->delete('/delete/{id}','PoliklinikController@deletePoliklinik');
+        // Method ada, tetapi tidak digunakan di production. (Mempertimbangkan apabila ada data yang berelasi)
+    });
+});
 
-// --- Antrean ---
-// Get Info Estimasi.
-$router->get('/antrean/estimasi','ExampleController@getEstimasi');
-// Get Info Antrean Hari Ini.
-$router->get('/antrean/info','ExampleController@getAntreanInfo');
-// Get Antrean aktif di user tertentu.
-$router->get('/antrean/pasien/{id}','ExampleController@getAntreanWithPasienId');
-// Get Riwayat Antrean berdasarkan User.
-$router->get('/antrean/pasien/riwayat/{id}','ExampleController@getRiwayatWithPasienId');
-// Get Riwayat Antrean berdasarkan Poliklinik.
-$router->get('/antrean/poliklinik/riwayat/{id}','ExampleController@getRiwayatWithPoliId');
-// Get Antrean berdasarkan Poliklinik (Antrean Utama).
-$router->get('/antrean/poliklinik/utama/{id}','ExampleController@getAntreanWithPoliId');
-// Get Antrean berdasarkan Poliklinik (Antrean Sementara).
-$router->get('/antrean/poliklinik/sementara/{id}','ExampleController@getAntreanWithPoliIdSementara');
-// Get Riwayat berdasarkan Poliklinik (Antrean Selesai).
-$router->get('/antrean/poliklinik/selesai/{id}','ExampleController@getAntreanSelesaiWithPoliId');
-// Update Antrean Status.
-$router->put('/antrean','ExampleController@editAntrean');
-// Insert Antrean.
-$router->post('/antrean','ExampleController@insertAntrean');
-// Insert Antrean Admin.
-$router->post('/antrean/admin/normal','ExampleController@insertAntreanNormal');
-// Insert Antrean Admin Gawat.
-$router->post('/antrean/admin/gawat','ExampleController@insertAntreanGawat');
-
-// --- Poliklinik ---
-// Buka Portal.
-$router->get('/poliklinik/buka','ExampleController@bukaPortal');
-// Tutup Portal.
-$router->get('/poliklinik/tutup','ExampleController@tutupPortal');
-// Get All Poliklinik
-$router->get('/poliklinik','ExampleController@getAllPoliklinik');
-// Get Poliklinik (Id tertentu).
-$router->get('/poliklinik/{id}','ExampleController@getPoliklinik');
-// Insert Poliklinik.
-$router->post('/poliklinik','ExampleController@insertPoliklinik');
-// Edit Status Poliklinik (portal).
-$router->put('/poliklinik/status','ExampleController@ubahStatusAllPoli');
-// Edit Poliklinik
-$router->put('/poliklinik/{id}','ExampleController@ubahPoliklinik');
-// Delete Poliklinik
-$router->delete('/poliklinik/{id}','ExampleController@deletePoliklinik');
-// Method ada, tetapi tidak digunakan di production. (Mempertimbangkan apabila ada data yang berelasi)
-
-// --- Perawat ---
-// Insert Perawat.
-$router->post('/perawat','ExampleController@insertPerawat');
-// Edit Perawat (Id tertentu).
-$router->put('/perawat/{id}','ExampleController@editPerawat');
-// Delete Perawat (Id tertentu).
-$router->delete('/perawat/{id}','ExampleController@deletePerawat');
-// Get Perawat (Semua).
-$router->get('/perawat','ExampleController@getAllPerawat');
-// Get Perawat (Id tertentu).
-$router->get('/perawat/{id}','ExampleController@getPerawat');
-// Perawat Login.
-$router->post('/perawat/login','ExampleController@loginPerawat');
