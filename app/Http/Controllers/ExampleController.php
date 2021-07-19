@@ -209,7 +209,11 @@ class ExampleController extends Controller
         }
 
         if($jam_booking_top == null){
-            return response()->json($jam_booking, 200);
+            if(date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))){
+                return response()->json($CURRENT_TIME, 200); 
+            } else {
+                return response()->json($jam_booking, 200);
+            }
         }
 
         if(date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking_top))){
