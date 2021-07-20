@@ -52,8 +52,8 @@ class PasienController extends Controller
     public function checkPasien(Request $request){
         $username           = $request->input('username');
         $no_handphone       = $request->input('no_handphone');
-        $resultUsername     = Pasien::where('username', '=', $username)->get();
-        $resultHandphone    = Pasien::where('no_handphone', '=', $no_handphone)->get();
+        $resultUsername     = Pasien::where('username', '=', $username)->first();
+        $resultHandphone    = Pasien::where('no_handphone', '=', $no_handphone)->first();
 
         if ( ( $resultUsername != null ) && ( $resultHandphone != null ) ) {
             return response()->json([
@@ -145,7 +145,8 @@ class PasienController extends Controller
 
     public function getPasien(Request $request, $id){
         $result = Pasien::where('id_pasien', '=', $id)->first();
-        if ( !$result->isEmpty() ) {
+
+        if ( $result ) {
             return response()->json($result, Response::HTTP_OK);
         } else {
             return response()->json(false, Response::HTTP_NOT_FOUND);
@@ -170,8 +171,8 @@ class PasienController extends Controller
                 'kepala_keluarga'   => $kepala_keluarga,
                 'tgl_lahir'         => $tgl_lahir,
                 'alamat'            => $alamat,
-                'latitude'        => $latitude,
-                'longitude'       => $longitude,
+                'latitude'          => $latitude,
+                'longitude'         => $longitude,
                 'nama_lengkap'      => $nama_lengkap,
             ]);
 

@@ -623,7 +623,7 @@ class AntreanController extends Controller
             ->where('status_poli', '=', 1)
             ->get();
 
-        return ( !$resultCheckRegist->isEmpty() );
+        return ( $resultCheckRegist );
     }
 
     private function kuotaNonBooking (
@@ -647,8 +647,8 @@ class AntreanController extends Controller
 
         if($resultInfoPoliklinik != null){
             $rataRata   = $resultInfoPoliklinik->poliklinik->rerata_waktu_pelayanan;
-            $jamTutup   = $resultInfoPoliklinik->poliklinik->jadwal->jam_tutup_booking;
-            $jamBuka    = $resultInfoPoliklinik->poliklinik->jam_buka_booking;
+            $jamTutup   = $resultInfoPoliklinik->jam_tutup_booking;
+            $jamBuka    = $resultInfoPoliklinik->jam_buka_booking;
             $kuota      = floor(60/$rataRata);
 
             while ( date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jamIterator)) ) {
