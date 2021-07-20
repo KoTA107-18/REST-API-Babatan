@@ -13,7 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        \App\Console\Commands\BukaPortalCommand::class,
+        \App\Console\Commands\TutupPortalCommand::class
     ];
 
     /**
@@ -24,6 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //
+        $schedule->command('portal:buka')->everyMinute()->timezone('Asia/Jakarta')->between('8:00', '09:59');
+        $schedule->command('portal:tutup')->everyMinute()->timezone('Asia/Jakarta')->between('10:00', '07:59');
     }
 }

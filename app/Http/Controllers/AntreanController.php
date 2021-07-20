@@ -504,7 +504,7 @@ class AntreanController extends Controller
     }
 
     // Kebutuhan Insert Booking
-    private function isJadwalTersedia ( string $id_poli, string $hari, string $jam_booking ): bool
+    private function isJadwalTersedia ( string $id_poli, string $hari, string $jam_booking )
     {
         $resultCheckRegist = Jadwal::with('poliklinik')
             ->where('hari', '=', $hari)
@@ -516,14 +516,14 @@ class AntreanController extends Controller
     }
 
     private function kuotaBooking (
-        tring $hari,
+        string $hari,
         int $id_poli,
         int $id_pasien,
         int $jenis_pasien,
         string $tgl_pelayanan,
         string $jam_booking,
         string $latitude,
-        string $longitude ): bool
+        string $longitude )
     {
         date_default_timezone_set("Asia/Jakarta");
 
@@ -609,7 +609,7 @@ class AntreanController extends Controller
         }
     }
 
-    private function isAmbilAntrean ( int $id_pasien ): bool
+    private function isAmbilAntrean ( int $id_pasien )
     {
         $resultCheckRegist = JadwalPasien::where('id_pasien', '=', $id_pasien)
             ->where('status_antrean', '!=', 3)
@@ -619,7 +619,7 @@ class AntreanController extends Controller
         return ( !$resultCheckRegist->isEmpty() );
     }
 
-    private function isPoliklinikAktif ( int $id_poli ): bool
+    private function isPoliklinikAktif ( int $id_poli )
     {
         $resultCheckRegist = Poliklinik::where('id_poli', '=', $id_poli)
             ->where('status_poli', '=', 1)
@@ -634,7 +634,7 @@ class AntreanController extends Controller
         int $id_pasien,
         string $latitude,
         string $longitude,
-        int $jenis_pasien): bool
+        int $jenis_pasien)
     {
         date_default_timezone_set("Asia/Jakarta");
         $status = false;
