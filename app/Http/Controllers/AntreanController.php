@@ -510,7 +510,7 @@ class AntreanController extends Controller
             ->where('jam_tutup_booking', '>=', $jam_booking)
             ->where('id_poli', '=', $id_poli)->first();
 
-        return ( !$resultCheckRegist->poliklinik->isEmpty() );
+        return ( $resultCheckRegist->poliklinik );
     }
 
     private function kuotaBooking (
