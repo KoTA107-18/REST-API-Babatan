@@ -514,7 +514,7 @@ class AntreanController extends Controller
     }
 
     private function kuotaBooking (
-        tring $hari,
+        string $hari,
         int $id_poli,
         int $id_pasien,
         int $jenis_pasien,
