@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('portal:buka')->timezone('Asia/Jakarta')->dailyAt('08:00');
-        $schedule->command('portal:tutup')->timezone('Asia/Jakarta')->dailyAt('10:00');
+        $schedule->command('portal:buka')->everyMinute()->timezone('Asia/Jakarta')->between('8:00', '09:59');
+        $schedule->command('portal:tutup')->everyMinute()->timezone('Asia/Jakarta')->between('10:00', '07:59');
     }
 }
