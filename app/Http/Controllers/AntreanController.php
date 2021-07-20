@@ -27,6 +27,7 @@ class AntreanController extends Controller
     {
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
 
         $id_poli        = $request->input('id_poli');
         $tgl_pelayanan  = $request->input('tgl_pelayanan');
@@ -52,7 +53,8 @@ class AntreanController extends Controller
         }
 
         if($jam_booking_top == null){
-            if(date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))){
+            if( (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))) && 
+                (date("Y-m-d", strtotime($CURRENT_DATE)) == date("Y-m-d", strtotime($tgl_pelayanan))) ){
                 return response()->json($CURRENT_TIME, Response::HTTP_OK);
             } else {
                 return response()->json($jam_booking, Response::HTTP_OK);
