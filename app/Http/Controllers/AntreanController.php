@@ -46,8 +46,8 @@ class AntreanController extends Controller
 
         $estimasiAntrean = 0;
         $jam_booking_top = null;
-        if ( count($antreanDiatas) != 0 ) {
-            $estimasiAntrean = count($antreanDiatas) * $rataRata;
+        if ( count((array)$antreanDiatas) != 0 ) {
+            $estimasiAntrean = count((array)$antreanDiatas) * $rataRata;
             $jam_booking_top = $antreanDiatas->jam_booking;
         }
 
