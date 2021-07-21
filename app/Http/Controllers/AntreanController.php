@@ -55,7 +55,7 @@ class AntreanController extends Controller
         }
 
         if($jam_booking_top == null){
-            if( (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))) && 
+            if( (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))) &&
                 (date("Y-m-d", strtotime($CURRENT_DATE)) == date("Y-m-d", strtotime($tgl_pelayanan))) ){
                 return response()->json($CURRENT_TIME, Response::HTTP_OK);
             } else {
@@ -577,7 +577,7 @@ class AntreanController extends Controller
                 'status_antrean'        => 1,
             ];
 
-            Queue::push(new InsertAntreanJob([$data, $id_poli, $CURRENT_DATE]));
+            Queue::push(new InsertAntreanJob([$data, $id_poli, $tgl_pelayanan]));
 
             return true;
         } else {
