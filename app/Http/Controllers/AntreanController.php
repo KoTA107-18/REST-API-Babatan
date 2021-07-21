@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\InsertAntreanJob;
 use App\Models\Jadwal;
 use App\Models\JadwalPasien;
 use App\Models\Pasien;
 use App\Models\Poliklinik;
 use App\Models\RiwayatAntrean;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Queue;
 use Symfony\Component\HttpFoundation\Response;
 
 class AntreanController extends Controller
@@ -27,6 +29,7 @@ class AntreanController extends Controller
     {
         date_default_timezone_set("Asia/Jakarta");
         $CURRENT_TIME = date("H:i", strtotime("now"));
+        $CURRENT_DATE = date("Y-m-d", strtotime("now"));
 
         $id_poli        = $request->input('id_poli');
         $tgl_pelayanan  = $request->input('tgl_pelayanan');
@@ -52,7 +55,8 @@ class AntreanController extends Controller
         }
 
         if($jam_booking_top == null){
-            if(date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))){
+            if( (date("H:i", strtotime($CURRENT_TIME)) > date("H:i", strtotime($jam_booking))) && 
+                (date("Y-m-d", strtotime($CURRENT_DATE)) == date("Y-m-d", strtotime($tgl_pelayanan))) ){
                 return response()->json($CURRENT_TIME, Response::HTTP_OK);
             } else {
                 return response()->json($jam_booking, Response::HTTP_OK);
@@ -303,7 +307,6 @@ class AntreanController extends Controller
             if ( $this->isPoliklinikAktif($id_poli) ) {
                 // Proses Antrean
                 if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien) ) {
-                    $this->sortNumber($id_poli, $CURRENT_DATE);
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
@@ -328,12 +331,11 @@ class AntreanController extends Controller
         } else {
             // Jika Booking
             // Jika Poliklinik memiliki jadwal di waktu yang dipilih.
-            $tgl_pelayanan = $request["tgl_pelayanan"];
-            $jam_booking = $request["jam_booking"];
+            $tgl_pelayanan  = $request->input('tgl_pelayanan');
+            $jam_booking    = $request->input('jam_booking');
             if ( $this->isJadwalTersedia($id_poli, $hari, $jam_booking) ) {
                 // Proses Antrean
                 if ( $this->kuotaBooking($hari, $id_poli, $id_pasien, $jenis_pasien, $tgl_pelayanan, $jam_booking, $latitude, $longitude) ) {
-                    $this->sortNumber($id_poli, $tgl_pelayanan);
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
@@ -396,7 +398,6 @@ class AntreanController extends Controller
         if ( $this->isPoliklinikAktif($id_poli) ) {
             // Proses Antrean
             if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien) ) {
-                $this->sortNumber($id_poli, $CURRENT_DATE);
                 return response()->json([
                     'success'   => true,
                     'message'   => 'Berhasil!',
@@ -481,8 +482,7 @@ class AntreanController extends Controller
             'status_antrean'        => 2,
         ];
 
-        JadwalPasien::create($data);
-        $this->sortNumber($id_poli, $CURRENT_DATE);
+        Queue::push(new InsertAntreanJob([$data, $id_poli, $CURRENT_DATE]));
 
         return response()->json([
             'success'   => true,
@@ -576,34 +576,12 @@ class AntreanController extends Controller
                 'longitude'             => $this->nullIf( $longitude, '' ),
                 'status_antrean'        => 1,
             ];
-            JadwalPasien::create($data);
+
+            Queue::push(new InsertAntreanJob([$data, $id_poli, $CURRENT_DATE]));
 
             return true;
         } else {
             return false;
-        }
-    }
-
-    // Sort Nomor Antrean
-    private function sortNumber ( int $id_poli, string $tgl_pelayanan )
-    {
-        $result = JadwalPasien::where([
-            ['id_poli', '=', $id_poli],
-            ['tgl_pelayanan', '=' , $tgl_pelayanan],
-        ])->orderBy('jam_booking', 'asc')->orderBy('waktu_daftar_antrean', 'asc')->get();
-
-        $i = 0;
-        while ( $i < count($result) ) {
-            $nomor                  = $i + 1;
-            $waktu_daftar_antrean   = $result[$i]->waktu_daftar_antrean;
-            $idPasien               = $result[$i]->id_pasien;
-
-            JadwalPasien::where('id_poli', '=', $id_poli)
-                ->where('id_pasien', '=', $idPasien)
-                ->where('waktu_daftar_antrean', '=', $waktu_daftar_antrean)
-                ->where('tgl_pelayanan', '=', $tgl_pelayanan)
-                ->update(['nomor_antrean' => $nomor]);
-            $i++;
         }
     }
 
@@ -690,7 +668,8 @@ class AntreanController extends Controller
                 'longitude'             => $this->nullIf( $longitude, '' ),
                 'status_antrean'        => 1,
             ];
-            JadwalPasien::create($data);
+
+            Queue::push(new InsertAntreanJob([$data, $id_poli, $CURRENT_DATE]));
             return true;
         } else {
             return false;
