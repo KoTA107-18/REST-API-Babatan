@@ -90,7 +90,7 @@ class PasienController extends Controller
 
         $pasien     = Pasien::where('username', $username)->first();
 
-        if (Hash::check($password, $pasien->password)) {
+        if ( $pasien ? Hash::check($password, $pasien->password) : $pasien ) {
             $apiToken = base64_encode(Str::random(40));
 
             $pasien->update([
@@ -119,7 +119,7 @@ class PasienController extends Controller
         $no_handphone   = $request->input('no_handphone');
         $pasien         = Pasien::where('no_handphone', $no_handphone)->first();
 
-        if ($pasien != null) {
+        if ( $pasien ) {
             $apiToken = base64_encode(Str::random(40));
 
             $pasien->update([
