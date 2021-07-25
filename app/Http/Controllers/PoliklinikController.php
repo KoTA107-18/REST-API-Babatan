@@ -70,21 +70,16 @@ class PoliklinikController extends Controller
         $jadwal         = $request->input('jadwal');
         $batas_booking  = $request->input('batas_booking');
 
-        Poliklinik::create([
+        $poli       = new Poliklinik;
+        $poli->fill([
             'nama_poli'                 => $nama_poli,
             'desc_poli'                 => $desc_poli,
             'status_poli'               => $status_poli,
             'rerata_waktu_pelayanan'    => $rerata,
             'batas_booking'             => $batas_booking,
         ]);
-
-        $poli = Poliklinik::select('id_poli')->where([
-            ['nama_poli',               '=', $nama_poli],
-            ['rerata_waktu_pelayanan',  '=', $rerata],
-            ['batas_booking',           '=', $batas_booking],
-        ])->first();
-
-        $id_poli = $poli->id_poli;
+        $poli->save();
+        $id_poli    = $poli->id_poli;
 
         foreach ($jadwal as $jadwalPerHari) {
             $hari               = $jadwalPerHari["hari"];

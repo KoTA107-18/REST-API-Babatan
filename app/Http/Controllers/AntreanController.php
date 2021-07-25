@@ -306,7 +306,7 @@ class AntreanController extends Controller
             // Jika Poliklinik aktif.
             if ( $this->isPoliklinikAktif($id_poli) ) {
                 // Proses Antrean
-                if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien) ) {
+                if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien, false) ) {
                     return response()->json([
                         'success'   => true,
                         'message'   => 'Berhasil!',
@@ -391,13 +391,14 @@ class AntreanController extends Controller
             'jenis_pasien'    => $this->nullIf( $jenis_pasien, '' ),
         ];
 
-        $pasien = Pasien::create($data);
-        $id_pasien = $pasien->id_pasien;
+        $pasien     = new Pasien;
+        $pasien->fill($data);
+        $pasien->save();
+        $id_pasien  = $pasien->id_pasien;
 
-        // Jika Poliklinik aktif.
-        if ( $this->isPoliklinikAktif($id_poli) ) {
+        try {
             // Proses Antrean
-            if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien) ) {
+            if( $this->kuotaNonBooking($hari, $id_poli, $id_pasien, $latitude, $longitude, $jenis_pasien, true) ) {
                 return response()->json([
                     'success'   => true,
                     'message'   => 'Berhasil!',
@@ -410,14 +411,13 @@ class AntreanController extends Controller
                     'data'      => ''
                 ], Response::HTTP_CONFLICT);
             }
-        } else {
-            // Jika Poliklinik tidak aktif.
+        } catch(\Exception $e) {
             // Tampilan pesan gagal.
             return response()->json([
                 'success'   => false,
-                'message'   => 'Poliklinik tidak aktif!',
+                'message'   => $e->getMessage(),
                 'data'      => ''
-            ], Response::HTTP_CONFLICT);
+            ], $e->getCode());
         }
     }
 
@@ -463,8 +463,10 @@ class AntreanController extends Controller
             'jenis_pasien'    => $this->nullIf( $jenis_pasien, '' ),
         ];
 
-        $pasien             = Pasien::create($data);
-        $id_pasien          = $pasien->id_pasien;
+        $pasien     = new Pasien;
+        $pasien->fill($data);
+        $pasien->save();
+        $id_pasien  = $pasien->id_pasien;
 
         $data = [
             'id_poli'               => $id_poli,
@@ -610,7 +612,8 @@ class AntreanController extends Controller
         int $id_pasien,
         string $latitude,
         string $longitude,
-        int $jenis_pasien)
+        int $jenis_pasien,
+        bool $isAdmin)
     {
         date_default_timezone_set("Asia/Jakarta");
         $status = false;
@@ -633,7 +636,7 @@ class AntreanController extends Controller
                 $jamIterator = date("H:i", strtotime($jamIterator . ' + ' . $rataRata . ' minutes'));
             }
 
-            while ( ( $status == false ) AND ( $jamIterator < $jamTutup ) AND ( $jamIterator >= $jamBuka ) ) {
+            while ( ( $status == false ) AND ( ( ( $jamIterator < $jamTutup ) AND ( $jamIterator >= $jamBuka ) ) OR ( $isAdmin ) ) ) {
                 $result = JadwalPasien::where('id_poli', '=', $id_poli)
                     ->where('tgl_pelayanan', '=', $CURRENT_DATE)
                     ->where('jam_booking', '=', $jamIterator)
