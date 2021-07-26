@@ -24,7 +24,7 @@ class Pasien extends Model implements AuthenticatableContract, AuthorizableContr
 
     protected $primaryKey = 'id_pasien';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     /**
      * The attributes that are mass assignable.

@@ -25,7 +25,7 @@ class Poliklinik extends Model implements AuthenticatableContract, AuthorizableC
 
     protected $primaryKey = 'id_poli';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     /**
      * The attributes that are mass assignable.
