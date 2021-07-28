@@ -100,6 +100,17 @@ class PoliklinikController extends Controller
     public function ubahPoliklinik(Request $request, $id)
     {
         $id_poli        = $id;
+
+        try {
+            Jadwal::where('id_poli', '=', $id_poli)->delete();
+        } catch(\Exception $e) {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Jadwal sedang digunakan! Tunggu hingga antrean kosong!',
+                'data'      => ''
+            ], $e->getCode());
+        }
+
         $nama_poli      = $request->input('nama_poli');
         $desc_poli      = $request->input('desc_poli');
         $status_poli    = $request->input('status_poli');
@@ -115,8 +126,6 @@ class PoliklinikController extends Controller
                 'rerata_waktu_pelayanan'    => $rerata,
                 'batas_booking'             => $batas_booking,
             ]);
-
-        Jadwal::where('id_poli', '=', $id_poli)->delete();
 
         foreach ($jadwal as $jadwalPerHari) {
             $hari               = $jadwalPerHari["hari"];
