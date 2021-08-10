@@ -103,7 +103,7 @@ class PoliklinikController extends Controller
 
         try {
             Jadwal::where('id_poli', '=', $id_poli)->delete();
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             return response()->json([
                 'success'   => false,
                 'message'   => 'Jadwal sedang digunakan! Tunggu hingga antrean kosong!',
